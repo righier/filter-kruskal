@@ -26,7 +26,6 @@ u64 kruskal(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int N
 double T = 1.0;
 
 ISize kruskalThreshold(int N, ISize /*M*/) {
-	// return N * 0.1;
 	return N;
 }
 
@@ -76,10 +75,12 @@ u64 filterKruskalRec(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize e
 	return cost;
 }
 
-u64 filterKruskalRec2(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int N, int &card, bool doFilter = false) {
+u64 filterKruskalRec2(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int N, int &card, vector<Edge> &temp, bool doFilter) {
 	ISize M = end - begin;
 
-	if (M <= kruskalThreshold(N, M)) return kruskal(set, edges, begin, end, N, card);
+	if (M <= kruskalThreshold(N, M)) {
+		return kruskal(set, edges, begin, end, N, card);
+	}
 
 	int pivotVal = get<0>(edges[pickPivot(edges, begin, end)]);
 
@@ -88,6 +89,8 @@ u64 filterKruskalRec2(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize 
 
 	auto it = begin;
 
+	temp.clear();
+
 	while (it != beginB) {
 		int val, a, b;
 		tie(val, a, b) = edges[it];
@@ -95,7 +98,9 @@ u64 filterKruskalRec2(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize 
 		if (doFilter && set.find(a) == set.find(b)) {
 			++it;
 		} else {
-			if (val < pivotVal) {
+			if (val == pivotVal) {
+				temp.push_back(edges[it++]);
+			} else if (val < pivotVal) {
 				if (endA != it) {
 					edges[endA] = edges[it];
 				}
@@ -109,10 +114,16 @@ u64 filterKruskalRec2(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize 
 		}
 	}
 
-	u64 cost = filterKruskalRec2(set, edges, begin, endA, N, card);
+	copy(temp.begin(), temp.end(), edges.begin() + endA);
+
+	u64 cost = filterKruskalRec2(set, edges, begin, endA, N, card, temp, false);
 
 	if (card < N-1) {
-		cost += filterKruskalRec2(set, edges, beginB, end, N, card, true);
+		cost += kruskal(set, edges, endA, beginB, N, card, false);
+	}
+
+	if (card < N-1) {
+		cost += filterKruskalRec2(set, edges, beginB, end, N, card, temp, true);
 	}
 
 	return cost;
@@ -264,7 +275,8 @@ u64 filterKruskalRec(vector<Edge> &edges, int N) {
 u64 filterKruskalRec2(vector<Edge> &edges, int N) {
 	DisjointSet set(N);
 	int card = 0;
-	return filterKruskalRec2(set, edges, 0, edges.size(), N, card);
+	vector<Edge> temp;
+	return filterKruskalRec2(set, edges, 0, edges.size(), N, card, temp, false);
 }
 
 u64 kruskal(vector<Edge> &edges, int N) {

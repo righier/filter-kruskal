@@ -63,7 +63,7 @@ struct RandomGraphGenerator {
 	}
 };
 
-static inline Graph randomGraph(Random &rnd, int n, int m, int maxw = INT_MAX) {
+static inline Graph randomGraph(Random &rnd, int n, int m, int maxw = 10000) {
 	Graph g(n);
 	RandomGraphGenerator gen(rnd, n, m, maxw);
 	while(gen.hasNext()) {
@@ -75,7 +75,7 @@ static inline Graph randomGraph(Random &rnd, int n, int m, int maxw = INT_MAX) {
 	return g;
 }
 
-static inline vector<Edge> randomEdges(Random &rnd, int n, i64 m, int maxw = INT_MAX) {
+static inline vector<Edge> randomEdges(Random &rnd, int n, i64 m, int maxw = 10000) {
 	vector<Edge> edges;
 	edges.reserve(m * 1.001); // for very large graphs the number of edges is really close to m
 	RandomGraphGenerator gen(rnd, n, m, maxw);
