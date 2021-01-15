@@ -48,7 +48,7 @@ struct RandomGraphGenerator {
 		a = n - a - 2;
 		int weight = rnd.getInt(maxw);
 		advance();
-		return {weight, (int)a, (int)b};
+		return make_tuple(weight, (int)a, (int)b);
 	}
 
 	void advance() {

@@ -13,7 +13,12 @@ struct DisjointSet {
 	int find(int x) {
 		int root = x;
 		while (root != p[root]) root = p[root];
-		while (x != root) tie(x, p[x]) = {p[x], root};
+		while (x != root) {
+			// tie(x, p[x]) = {p[x], root};
+			int temp = p[x];
+			p[x] = root;
+			x = temp;
+		}
 		return root;
 	}
 
