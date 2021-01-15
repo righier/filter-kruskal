@@ -27,7 +27,15 @@ int main(int argc, char **argv) {
 
 		} else if (S == "filterkruskal") {
 			auto edges = randomEdges(rnd, N, M);
-			cost = filterKruskal2(edges, N);
+			cost = filterKruskal(edges, N);
+
+		} else if (S == "filterkruskalrec") {
+			auto edges = randomEdges(rnd, N, M);
+			cost = filterKruskalRec(edges, N);
+
+		} else if (S == "filterkruskalrec2") {
+			auto edges = randomEdges(rnd, N, M);
+			cost = filterKruskalRec2(edges, N);
 
 		} else if (S == "prim") {
 			auto graph = randomGraph(rnd, N, M);
