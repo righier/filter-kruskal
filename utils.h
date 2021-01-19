@@ -21,48 +21,56 @@ typedef uint64_t u64;
 typedef int64_t i64;
 typedef uint8_t u8;
 
-struct RandomGraphGenerator {
+struct GraphGenerator {
+
+	virtual bool hasNext() = 0;
+	virtual Edge next() = 0;
+};
+
+struct RandomGraphGenerator : public GraphGenerator {
 	int n, maxw;
-	i64 m, maxm, i, edgeCount;
+	// i64 edgeCount;
 	float ilogp;
 	Random &rnd;
 
+	int a, b;
+
 	RandomGraphGenerator(Random &_rnd, int _n, i64 _m, int _maxw):
-	n(_n), maxw(_maxw), m(_m), rnd(_rnd) {
-		maxm = (i64)n * ((i64)n-1) / 2;
+	n(_n), maxw(_maxw), rnd(_rnd) {
+		i64 m = _m;
+		i64 maxm = (i64)n * ((i64)n-1) / 2;
 		if (m > maxm) m = maxm;
-		ilogp = 1.0f / log(1.0f - (float)m / (float)maxm);
-		i = -1;
-		edgeCount = 0;
+
+		ilogp = 1.0f / logf(1.0f - (float)m / (float)maxm);
+		a = b = 0;
+
 		advance();
 	}
 
 	bool hasNext() {
-		return i < maxm;
+		return a < n;
 	}
 
 	Edge next() {
-		++edgeCount;
-		i64 a = (i64)(sqrt(0.25 + 2*i) - 0.5);
-		i64 b = a*(a+1)/2 - i + n - 1;
-		a = n - a - 2;
 		int weight = rnd.getInt(maxw);
 		advance();
-		return make_tuple(weight, (int)a, (int)b);
+		return make_tuple(weight, a, b);
 	}
 
 	void advance() {
 		float p0 = rnd.getFloat();
 		float logpp = logf(p0) * ilogp;
-		i64 skip = max((i64)ceilf(logpp), (i64)1);
+		int skip = max((int)ceilf(logpp), 1);
 
-		i += skip;
-		if (!hasNext()) {
-			cout << "edges: " << edgeCount << endl;
+		b += skip;
+
+		while (b >= n) {
+			++a;
+			b -= n - a - 1;
 		}
+
 	}
 };
-
 static inline Graph randomGraph(Random &rnd, int n, int m, int maxw = 10000) {
 	Graph g(n);
 	RandomGraphGenerator gen(rnd, n, m, maxw);

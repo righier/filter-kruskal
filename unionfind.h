@@ -10,16 +10,47 @@ struct DisjointSet {
 		for (int i = 0; i < N; i++) p[i] = i;
 	}
 
+	// naive
 	int find(int x) {
+		if (p[x] == x) return x;
+		return find(p[x]);
+	}
+
+	// recursive path compression
+	int find1(int x) {
+		if (p[x] == x) return x;
+		return (p[x] = find(p[x]));
+	}
+
+	// iterative path compression
+	int find2(int x) {
 		int root = x;
 		while (root != p[root]) root = p[root];
 		while (x != root) {
-			// tie(x, p[x]) = {p[x], root};
 			int temp = p[x];
 			p[x] = root;
 			x = temp;
 		}
 		return root;
+	}
+
+	// path splitting
+	int find3(int x) {
+		while (p[x] != x) {
+			int parent = p[x];
+			p[x] = p[p[x]];
+			x = parent;
+		}
+		return x;
+	}
+
+	// path halving
+	int find4(int x) {
+		while (p[x] != x) {
+			p[x] = p[p[x]];
+			x = p[x];
+		}
+		return x;
 	}
 
 	void merge(int a, int b) {

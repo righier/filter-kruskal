@@ -14,10 +14,14 @@ struct Random {
 
 	double getDouble() {
 		// return (next() >> 11) * 0x1.0p-53;
-		return (next() >> 11) * (1.0 / (uint64_t(1) << 24));
+		return (next() >> 11) * (1.0 / (uint64_t(1) << 53));
 	}
 
 	float getFloat() {
+		return (next() >> 40) * (1.0f / (uint64_t(1) << 24));
+	}
+
+	float getFloat2() {
 		uint32_t val;
 		if (isCached){
 			val = cached;
