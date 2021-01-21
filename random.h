@@ -13,30 +13,15 @@ struct Random {
 	}
 
 	double getDouble() {
-		// return (next() >> 11) * 0x1.0p-53;
 		return (next() >> 11) * (1.0 / (uint64_t(1) << 53));
 	}
 
 	float getFloat() {
-		return (next() >> 40) * (1.0f / (uint64_t(1) << 24));
-	}
-
-	float getFloat2() {
-		uint32_t val;
-		if (isCached){
-			val = cached;
-		} else {
-			uint64_t tmp = next();
-			val = uint32_t(tmp >> 32);
-			cached = uint32_t(tmp & ((uint64_t(1)<<32) - 1));
-		}
-		isCached = !isCached;
-		// return (val >> 8) * 0x1.0p-24f;
-		return (val >> 8) * (1.0f / (uint32_t(1) << 24));
+		return (next() >> 40) * (1.0f / (uint32_t(1) << 24));
 	}
 
 	int getInt(int max) {
-		return (int)(getFloat() * max);
+		return (int)(getDouble() * max);
 	}
 
 	int getInt(int min, int max) {
@@ -44,9 +29,6 @@ struct Random {
 	}
 
 private:
-
-	bool isCached = false;
-	uint32_t cached = 0;
 
 	uint64_t s[2];
 

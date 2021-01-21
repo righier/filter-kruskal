@@ -11,13 +11,13 @@ struct DisjointSet {
 	}
 
 	// naive
-	int find(int x) {
+	int find0(int x) {
 		if (p[x] == x) return x;
 		return find(p[x]);
 	}
 
 	// recursive path compression
-	int find1(int x) {
+	int find(int x) {
 		if (p[x] == x) return x;
 		return (p[x] = find(p[x]));
 	}
@@ -53,6 +53,7 @@ struct DisjointSet {
 		return x;
 	}
 
+	// union by rank
 	void merge(int a, int b) {
 		int aa = find(a);
 		int bb = find(b);
@@ -61,6 +62,7 @@ struct DisjointSet {
 		p[bb] = aa;
 	}
 
+	// union by rank
 	bool checkMerge(int a, int b) {
 		int aa = find(a);
 		int bb = find(b);

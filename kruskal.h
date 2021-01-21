@@ -29,8 +29,25 @@ ISize kruskalThreshold(int N, ISize /*M*/) {
 	return N;
 }
 
-ISize pickPivot(vector<Edge> &/*edges*/, ISize begin, ISize /*end*/) {
+ISize pickPivot(vector<Edge> &edges, ISize begin, ISize end) {
 	return begin;
+}
+
+ISize pickPivot2(vector<Edge> &edges, ISize begin, ISize end) {
+	static Random rnd(31);
+	static vector<ISize> v;
+	ISize k = end - begin;
+	ISize samples = max(sqrt(k), 1.0);
+
+	v.clear();
+	for (ISize i = 0; i < samples; i++) {
+		v.push_back(rnd.getInt(begin, end));
+	}
+
+	sort(v.begin(), v.end());
+
+	ISize pivot = v[samples/2];
+	return pivot;
 }
 
 u64 filterKruskalRec(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int N, int &card) {
@@ -79,7 +96,7 @@ u64 filterKruskalRec2(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize 
 	ISize M = end - begin;
 
 	if (M <= kruskalThreshold(N, M)) {
-		return kruskal(set, edges, begin, end, N, card);
+		return kruskal(set, edges, begin, end, N, card, true);
 	}
 
 	int pivotVal = get<0>(edges[pickPivot(edges, begin, end)]);

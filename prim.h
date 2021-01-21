@@ -15,6 +15,7 @@ u64 prim(Graph &g) {
 
 	vector<int> parent(N, -1);
 	vector<bool> visited(N, false);
+	
 	cost[0].e.first = 0;
 	PairingHeap *h = cost.data();
 

@@ -5,7 +5,7 @@
 
 using namespace std;
 
-struct RandomGraphGenerator2: public GraphGenerator {
+struct RandomGraphGeneratorSet: public GraphGenerator {
 	int n, maxw;
 	i64 m, maxm, i;
 	i64 colls = 0;
@@ -14,7 +14,7 @@ struct RandomGraphGenerator2: public GraphGenerator {
 
 	Random &rnd;
 
-	RandomGraphGenerator2(Random &_rnd, int _n, i64 _m, int _maxw):
+	RandomGraphGeneratorSet(Random &_rnd, int _n, i64 _m, int _maxw):
 	n(_n), maxw(_maxw), m(_m), rnd(_rnd) {
 		maxm = (i64)n * ((i64)n-1) / 2;
 		if (m > maxm) m = maxm;
@@ -53,28 +53,27 @@ struct RandomGraphGenerator2: public GraphGenerator {
 
 };
 
-struct RandomGraphGenerator3 : public GraphGenerator {
+struct RandomGraphGeneratorDouble : public GraphGenerator {
 	int n, maxw;
-	// i64 edgeCount;
-	float ilogp;
+	double ilogp;
 	Random &rnd;
 
 	int a, b;
 
-	RandomGraphGenerator3(Random &_rnd, int _n, i64 _m, int _maxw):
+	RandomGraphGeneratorDouble(Random &_rnd, int _n, i64 _m, int _maxw):
 	n(_n), maxw(_maxw), rnd(_rnd) {
 		i64 m = _m;
-		i64 maxm = (i64)n * ((i64)n-1) / 2;
+		i64 maxm = i64(n) * (i64(n)-1) / 2;
 		if (m > maxm) m = maxm;
 
-		ilogp = 1.0f / logf(1.0f - (float)m / (float)maxm);
+		ilogp = 1.0 / log(1.0 - double(m) / double(maxm));
 		a = b = 0;
 
 		advance();
 	}
 
 	bool hasNext() {
-		return a < n;
+		return a < n-1;
 	}
 
 	Edge next() {
@@ -84,21 +83,95 @@ struct RandomGraphGenerator3 : public GraphGenerator {
 	}
 
 	void advance() {
-		float p0 = rnd.getFloat();
-		float logpp = logf(p0) * ilogp;
-		int skip = max((int)ceilf(logpp), 1);
 
+		double p0 = rnd.getDouble();
+		double logpp = log(p0) * ilogp;
+		int skip = int(logpp) + 1;
 		b += skip;
 
 		while (b >= n) {
 			++a;
-			b -= n - a - 1;
+			b = b - n + a + 1;
 		}
 
 	}
 };
 
+void testDistribution1() {
+	Random rnd(31);
+
+	int n = 20;
+	int tests = 10000000;
+	double p = 0.5;
+
+	vector<u64> counts(n, 0);
+
+	for (int i = 0; i < tests; i++) {
+		for (int j = 0; j < n; j++) {
+			if (rnd.getDouble() < p) {
+				counts[j]++;
+			}
+		}
+	}
+
+	for (int i = 0; i < n; i++) {
+		cout << counts[i] << "\n";
+	}
+	cout << endl;
+}
+
+void testDistribution2() {
+	Random rnd(31);
+
+	int n = 50;
+	int tests = 100000000;
+	double p = 0.69;
+
+	vector<u64> counts(n, 0);
+
+	for (int i = 0; i < tests; i++) {
+		int j = -1;
+
+		int count = 0;
+		while (true) {
+
+			do {
+				double p0 = rnd.getDouble();
+				double logpp = log(p0) / log(1.0-p);
+				if (p == 0) {
+					cout << logpp << endl;
+				}
+				// int skip = max((int)ceil(logpp), 1);
+				// skip = ceil(logpp);
+				int skip = (int)logpp + 1;
+				j += skip;
+			} while (j < 0);
+
+			if (j >= n) break;
+
+			// counts[j]++;
+			count++;
+			// j++;
+		}
+		// cout << count << endl;
+		counts[count]++;
+	}
+
+	for (int i = 0; i < n; i++) {
+		cout << counts[i] << "\n";
+	}
+	cout << endl;
+}
+
 int main(int argc, char **argv) {
+	
+	// testDistribution1();
+
+	testDistribution2();
+
+	return 0;
+
+	
 
 	if (argc == 1) {
 		cout << "NOT ENOUGH ARGS" << endl;
@@ -107,33 +180,70 @@ int main(int argc, char **argv) {
 
 	int s = atoi(argv[1]);
 
-	int n = 60000;
+	int n = 20000;
+
 	u64 m = 100000000;
 	int maxw = 1000000;
 
 	Random rnd(31);
-
 	GraphGenerator *gg;
 
+	/*
+	int iter = 100;
 
-	for (int i = 0; i < 10; i++) {
+	for (int j = 0; j < 100; j++) {
+		double count = 0;
+
+		for (int i = 0; i < iter; i++) {
+
+			if (s == 1) {
+				gg = new RandomGraphGenerator(rnd, n, m, maxw);
+			} else if (s == 2) {
+				gg = new RandomGraphGeneratorDouble(rnd, n, m, maxw);
+			}
+
+			while (gg->hasNext()){
+				gg->next();
+				count++;
+			}
+		}
+
+		cout << "average: " << (int)round(count / iter) << endl;
+	}
+
+	return 0;
+*/
+
+	// for (int i = 0; i < 100; i++) {
+	// 	cout << rnd.getFloat() << endl;
+	// }
+
+	// return 0;
+
+	for (int i = 0; i < 100; i++) {
 
 		if (s == 1) {
 			gg = new RandomGraphGenerator(rnd, n, m, maxw);
 		} else if (s == 2) {
-			gg = new RandomGraphGenerator2(rnd, n, m, maxw);
+			gg = new RandomGraphGeneratorDouble(rnd, n, m, maxw);
 		} else if (s == 3) {
-			gg = new RandomGraphGenerator3(rnd, n, m, maxw);
+			gg = new RandomGraphGeneratorSet(rnd, n, m, maxw);
 		}
 
+		int count = 0;
 		int tot = 0;
 		while (gg->hasNext()) {
 			int w, a, b;
 			tie(w, a, b) = gg->next();
+			// cout << a << " " << b << endl;
 			tot += w + a + b;
+			count++;
 		}
 
 		cout << tot << endl;
+		cout << "edges: " << count << endl;
+
+		delete gg;
 	}
 
 

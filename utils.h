@@ -27,10 +27,9 @@ struct GraphGenerator {
 	virtual Edge next() = 0;
 };
 
-struct RandomGraphGenerator : public GraphGenerator {
+struct RandomGraphGenerator: public GraphGenerator {
 	int n, maxw;
-	// i64 edgeCount;
-	float ilogp;
+	double ilogp;
 	Random &rnd;
 
 	int a, b;
@@ -38,17 +37,17 @@ struct RandomGraphGenerator : public GraphGenerator {
 	RandomGraphGenerator(Random &_rnd, int _n, i64 _m, int _maxw):
 	n(_n), maxw(_maxw), rnd(_rnd) {
 		i64 m = _m;
-		i64 maxm = (i64)n * ((i64)n-1) / 2;
+		i64 maxm = i64(n) * (i64(n)-1) / 2;
 		if (m > maxm) m = maxm;
 
-		ilogp = 1.0f / logf(1.0f - (float)m / (float)maxm);
+		ilogp = 1.0 / log(1.0 - double(m) / double(maxm));
 		a = b = 0;
 
 		advance();
 	}
 
 	bool hasNext() {
-		return a < n;
+		return a < n-1;
 	}
 
 	Edge next() {
@@ -58,20 +57,21 @@ struct RandomGraphGenerator : public GraphGenerator {
 	}
 
 	void advance() {
-		float p0 = rnd.getFloat();
-		float logpp = logf(p0) * ilogp;
-		int skip = max((int)ceilf(logpp), 1);
 
+		double p0 = rnd.getDouble();
+		double logpp = log(p0) * ilogp;
+		int skip = int(logpp) + 1;
 		b += skip;
 
 		while (b >= n) {
 			++a;
-			b -= n - a - 1;
+			b = b - n + a + 1;
 		}
 
 	}
 };
-static inline Graph randomGraph(Random &rnd, int n, int m, int maxw = 10000) {
+
+static inline Graph randomGraph(Random &rnd, int n, int m, int maxw = 10000000) {
 	Graph g(n);
 	RandomGraphGenerator gen(rnd, n, m, maxw);
 	while(gen.hasNext()) {
@@ -83,7 +83,7 @@ static inline Graph randomGraph(Random &rnd, int n, int m, int maxw = 10000) {
 	return g;
 }
 
-static inline vector<Edge> randomEdges(Random &rnd, int n, i64 m, int maxw = 10000) {
+static inline vector<Edge> randomEdges(Random &rnd, int n, i64 m, int maxw = 10000000) {
 	vector<Edge> edges;
 	edges.reserve(m * 1.001); // for very large graphs the number of edges is really close to m
 	RandomGraphGenerator gen(rnd, n, m, maxw);
