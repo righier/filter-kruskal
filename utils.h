@@ -21,6 +21,8 @@ typedef uint64_t u64;
 typedef int64_t i64;
 typedef uint8_t u8;
 
+#define UNUSED(x) (void)(x)
+
 struct GraphGenerator {
 
 	virtual bool hasNext() = 0;
