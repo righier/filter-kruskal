@@ -52,15 +52,16 @@ struct RandomGraphGenerator: public GraphGenerator {
 
 	Edge next() {
 		int weight = rnd.getInt(maxw);
+		auto out = make_tuple(weight, a, b);
 		advance();
-		return make_tuple(weight, a, b);
+		return out;
 	}
 
 	void advance() {
 
 		double p0 = rnd.getDouble();
 		double logpp = log(p0) * ilogp;
-		int skip = int(logpp) + 1;
+		int skip = max(int(logpp) + 1, int(1));
 		b += skip;
 
 		while (b >= n) {
@@ -74,12 +75,18 @@ struct RandomGraphGenerator: public GraphGenerator {
 static inline Graph randomGraph(Random &rnd, int n, int m, int maxw = 10000000) {
 	Graph g(n);
 	RandomGraphGenerator gen(rnd, n, m, maxw);
+	u64 count = 0;
 	while(gen.hasNext()) {
 		int weight, i, j;
 		tie(weight, i, j) = gen.next();
+		if (i < 0 || i >= n || j <= i || j >= n) {
+			cout << "ERROR " << i << " " << j << endl;
+		}
 		g[i].emplace_back(std::make_pair(weight, j));
 		g[j].emplace_back(std::make_pair(weight, i));
+		count++;
 	}
+	cout << "edges: " << count << endl;
 	return g;
 }
 
@@ -90,6 +97,7 @@ static inline vector<Edge> randomEdges(Random &rnd, int n, i64 m, int maxw = 100
 	while(gen.hasNext()) {
 		edges.emplace_back(gen.next());
 	}
+	cout << "edges: " << edges.size() << endl;
 	return edges;
 }
 

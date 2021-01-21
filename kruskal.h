@@ -25,7 +25,7 @@ u64 kruskal(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int N
 
 double T = 1.0;
 
-ISize kruskalThreshold(int N, ISize /*M*/) {
+ISize kruskalThreshold(int N, ISize M) {
 	return N;
 }
 
