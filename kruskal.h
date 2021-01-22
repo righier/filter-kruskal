@@ -7,15 +7,14 @@ typedef vector<Edge>::iterator EdgeIt;
 typedef vector<Edge>::size_type ISize;
 
 u64 kruskal(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int N, int &card, bool doSort = true) {
-	if (doSort) {
-		sort(edges.begin()+begin, edges.begin()+end);
-	}
+
+	if (doSort) sort(edges.begin()+begin, edges.begin()+end);
 
 	u64 cost = 0;
 	for (auto it = begin; it != end; ++it) {
-		int w, a, b; tie(w, a, b) = edges[it];
-		if (set.checkMerge(a, b)) {
-			cost += w;
+		Edge &e = edges[it];
+		if (set.checkMerge(e.a, e.b)) {
+			cost += e.w;
 			if (++card == N-1) break;
 		}
 	}
@@ -28,29 +27,45 @@ ISize kruskalThreshold(int N, ISize M) {
 	return N;
 }
 
+// pick the first element as pivot
 int pickPivot(vector<Edge> &edges, ISize begin, ISize end) {
 	UNUSED(edges);
 	UNUSED(end);
-	return get<0>(edges[begin]);
+	return edges[begin].w;
 }
 
+// pick a random pivot
 int pickPivotRandom(vector<Edge> &edges, ISize begin, ISize end) {
 	static Random rnd(31);
-	return get<0>(edges[rnd.getInt(begin, end)]);
+	return edges[rnd.getInt(begin, end)].w;
 }
 
-// sample only 3 elements
+// sample only 3 elements: first, middle, last
 int pickPivotSample3(vector<Edge> &edges, ISize begin, ISize end) {
-	int a = get<0>(edges[begin]);
-	int b = get<0>(edges[end-1]);
-	int c = get<0>(edges[(begin+end)/2]);
+	int a = edges[begin].w;
+	int b = edges[end-1].w;
+	int c = edges[(begin+end)/2].w;
 
 	if (a > b) swap(a, b);
+	if (c < a) return a;
 	if (b < c) return b;
 	else return c;
 }
 
-// sample
+// sample only 3 random elements
+int pickPivotSample3Random(vector<Edge> &edges, ISize begin, ISize end) {
+	static Random rnd(31);
+	int a = edges[rnd.getInt(begin, end)].w;
+	int b = edges[rnd.getInt(begin, end)].w;
+	int c = edges[rnd.getInt(begin, end)].w;
+
+	if (a > b) swap(a, b);
+	if (c < a) return a;
+	if (b < c) return b;
+	else return c;
+}
+
+// sample sqrt(k) random elements
 int pickPivotSampleRootK(vector<Edge> &edges, ISize begin, ISize end) {
 	static Random rnd(31);
 	static vector<int> v;
@@ -59,10 +74,12 @@ int pickPivotSampleRootK(vector<Edge> &edges, ISize begin, ISize end) {
 	v.clear();
 	for (int i = 0; i < samples; i++) {
 		ISize j = rnd.getInt(begin, end);
-		v.push_back(get<0>(edges[j]));
+		v.push_back(edges[j].w);
 	}
 
-	sort(v.begin(), v.end());
+	// sort(v.begin(), v.end());
+	nth_element(v.begin(), v.begin() + samples/2, v.end());
+
 	int pivot = v[samples/2];
 
 	return pivot;
@@ -72,6 +89,16 @@ bool filter(DisjointSet &set, int a, int b) {
 	return set.p[a] == set.p[b] || set.find(a) == set.find(b);
 }
 
+/*
+ISize twoWayPartitioning(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int pivotVal, bool doFilter) {
+	ISize it;
+
+
+	return it;
+}
+*/
+
+// better strategy if the array has many repetitions
 pair<ISize, ISize> threeWayPartitioning(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int pivotVal, bool doFilter) {
 	static vector<Edge> temp;
 	temp.clear();
@@ -79,15 +106,14 @@ pair<ISize, ISize> threeWayPartitioning(DisjointSet &set, vector<Edge> &edges, I
 	ISize endA = begin, it = begin, beginB = end;
 
 	while (it != beginB) {
-		int val, a, b;
-		tie(val, a, b) = edges[it];
+		Edge e = edges[it];
 
-		if (doFilter && filter(set, a, b)) {
+		if (doFilter && filter(set, e.a, e.b)) {
 			++it;
 		} else {
-			if (val == pivotVal) {
+			if (e.w == pivotVal) {
 				temp.push_back(edges[it++]);
-			} else if (val < pivotVal) {
+			} else if (e.w < pivotVal) {
 				if (endA != it) {
 					edges[endA] = edges[it];
 				}
@@ -105,100 +131,24 @@ pair<ISize, ISize> threeWayPartitioning(DisjointSet &set, vector<Edge> &edges, I
 	return make_pair(endA, beginB);
 }
 
-
-u64 filterKruskalRecNaive(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int N, int &card) {
-	ISize M = end - begin;
-
-	if (M <= kruskalThreshold(N, M)) return kruskal(set, edges, begin, end, N, card);
-
-	int pivotVal = pickPivotRandom(edges, begin, end);
-
-	auto endA = begin;
-	auto beginB = end;
-
-	auto it = begin;
-
-	while (it != beginB) {
-		int val, a, b;
-		tie(val, a, b) = edges[it];
-
-		if (set.find(a) == set.find(b)) {
-			++it;
-		} else {
-			if (val < pivotVal) {
-				if (endA != it) {
-					edges[endA] = edges[it];
-				}
-				++endA;
-				++it;
-			} else {
-				if (--beginB != it){
-					swap(edges[it], edges[beginB]);
-				}
-			}
-		}
-	}
-
-	u64 cost = filterKruskalRecNaive(set, edges, begin, endA, N, card);
-
-	if (card < N-1) {
-		cost += filterKruskalRecNaive(set, edges, beginB, end, N, card);
-	}
-
-	return cost;
-}
-
-
-u64 filterKruskalRec(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int N, int &card, vector<Edge> &temp, bool doFilter) {
+u64 filterKruskalRec(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int N, int &card, bool doFilter = false) {
 	ISize M = end - begin;
 
 	if (M <= kruskalThreshold(N, M)) {
 		return kruskal(set, edges, begin, end, N, card, true);
 	}
 
-	int pivotVal = pickPivotRandom(edges, begin, end);
+	int pivotVal = pickPivotSampleRootK(edges, begin, end);
+	ISize endA, beginB;
+	tie(endA, beginB) = threeWayPartitioning(set, edges, begin, end, pivotVal, doFilter);
 
-	auto endA = begin;
-	auto beginB = end;
-
-	auto it = begin;
-
-	temp.clear();
-
-	while (it != beginB) {
-		int val, a, b;
-		tie(val, a, b) = edges[it];
-
-		if (doFilter && set.find(a) == set.find(b)) {
-			++it;
-		} else {
-			if (val == pivotVal) {
-				temp.push_back(edges[it++]);
-			} else if (val < pivotVal) {
-				if (endA != it) {
-					edges[endA] = edges[it];
-				}
-				++endA;
-				++it;
-			} else {
-				if (--beginB != it){
-					swap(edges[it], edges[beginB]);
-				}
-			}
-		}
-	}
-
-	copy(temp.begin(), temp.end(), edges.begin() + endA);
-
-	u64 cost = filterKruskalRec(set, edges, begin, endA, N, card, temp, false);
-
+	u64 cost = filterKruskalRec(set, edges, begin, endA, N, card);
 	if (card < N-1) {
 		cost += kruskal(set, edges, endA, beginB, N, card, false);
 		if (card < N-1) {
-			cost += filterKruskalRec(set, edges, beginB, end, N, card, temp, true);
+			cost += filterKruskalRec(set, edges, beginB, end, N, card, true);
 		}
 	}
-
 
 	return cost;
 }
@@ -211,7 +161,6 @@ u64 filterKruskalRec2(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize 
 	}
 
 	int pivotVal = pickPivotRandom(edges, begin, end);
-
 	ISize endA, beginB;
 	tie(endA, beginB) = threeWayPartitioning(set, edges, begin, end, pivotVal, doFilter);
 
@@ -250,7 +199,7 @@ u64 filterKruskal(vector<Edge> &edges, int N) {
 		} else {
 			int pivotVal = pickPivotRandom(edges, begin, end);
 			ISize endA, beginB;
-			tie(endA, beginB) = threeWayPartitioning(set, edges, begin, end, pivotVal, true);
+			tie(endA, beginB) = threeWayPartitioning(set, edges, begin, end, pivotVal, !goingLeft);
 			ranges.emplace(make_pair(begin, endA));
 			end = endA;
 			goingLeft = true;
@@ -260,48 +209,10 @@ u64 filterKruskal(vector<Edge> &edges, int N) {
 	return cost;
 }
 
-/*
-u64 filterKruskalOld(vector<Edge> &edges, int N) {
-	stack<pair<ISize, ISize>> ranges;
-	ranges.emplace(make_pair(0, edges.size()));
-	DisjointSet set(N);
-
-	int card = 0;
-	u64 cost = 0;
-
-	while (!ranges.empty() && card < N-1) {
-
-		ISize begin, end;
-		tie(begin, end) = ranges.top();
-		ranges.pop();
-
-		ISize M = end - begin;
-		if (M < kruskalThreshold(N, M)) {
-			cost += kruskal(set, edges, begin, end, N, card);
-		} else {
-			int pivotVal = pickPivotRandom(edges, begin, end);
-			ISize endA, beginB;
-			tie(endA, beginB) = threeWayPartitioning(set, edges, begin, end, pivotVal, true);
-			ranges.push(make_pair(beginB, end));
-			ranges.push(make_pair(begin, endA));
-		}
-	}
-
-	return cost;
-}
-*/
-
-u64 filterKruskalRecNaive(vector<Edge> &edges, int N) {
-	DisjointSet set(N);
-	int card = 0;
-	return filterKruskalRecNaive(set, edges, 0, edges.size(), N, card);
-}
-
 u64 filterKruskalRec(vector<Edge> &edges, int N) {
 	DisjointSet set(N);
 	int card = 0;
-	vector<Edge> temp;
-	return filterKruskalRec(set, edges, 0, edges.size(), N, card, temp, false);
+	return filterKruskalRec(set, edges, 0, edges.size(), N, card);
 }
 
 u64 filterKruskalRec2(vector<Edge> &edges, int N) {

@@ -64,6 +64,7 @@ struct DisjointSet {
 
 	// union by rank
 	bool checkMerge(int a, int b) {
+		if (p[a] == p[b]) return false;
 		int aa = find(a);
 		int bb = find(b);
 		if (aa == bb) return false;

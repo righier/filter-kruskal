@@ -12,16 +12,51 @@
 
 using namespace std;
 
-typedef std::tuple<int,int,int> Edge;
-typedef std::pair<int,int> NodeEdge;
-typedef std::vector<NodeEdge> Node;
-typedef std::vector<Node> Graph;
-
 typedef uint64_t u64;
 typedef int64_t i64;
 typedef uint8_t u8;
 
 #define UNUSED(x) (void)(x)
+
+struct Edge {
+	int a, b, w;
+
+	Edge(int a, int b, int w): a(a), b(b), w(w) {}
+
+	bool operator<(const Edge &rhs) {
+		return w < rhs.w;
+	}
+};
+
+struct HalfEdge {
+	int other;
+	int weight;
+
+	HalfEdge(int other, int weight): other(other), weight(weight) {}
+};
+
+typedef vector<HalfEdge>::size_type HSize;
+
+struct BetterGraph {
+	vector<HalfEdge> edges;
+	vector<HSize> nodes;
+
+	BetterGraph(int N, const vector<Edge> &edges): nodes(N+1, 0) {
+		// count how many edges there are for every vertex
+		for (Edge e: edges) {
+			nodes[e.a+1]++;
+			nodes[e.b+1]++;
+		}
+		// calculate the prefix sum
+		for (int i = 1; i < nodes.size(); i++) {
+			nodes[i] += nodes[i-1];
+		}
+	}
+};
+
+typedef std::pair<int,int> NodeEdge;
+typedef std::vector<NodeEdge> Node;
+typedef std::vector<Node> Graph;
 
 struct GraphGenerator {
 
@@ -54,7 +89,7 @@ struct RandomGraphGenerator: public GraphGenerator {
 
 	Edge next() {
 		int weight = rnd.getInt(maxw);
-		auto out = make_tuple(weight, a, b);
+		auto out = Edge(a, b, weight);
 		advance();
 		return out;
 	}
@@ -74,18 +109,25 @@ struct RandomGraphGenerator: public GraphGenerator {
 	}
 };
 
+static inline SparseGraph randomGraph(Random &rnd, int n, int m, int maxw = 10000000) {
+	SparseGraph g(n);
+	g.buffer.reserve(m * 2.002); // i need to store every edge two times
+
+	RandomGraphGenerator gen(rnd, n, m, maxw);
+	while (gen.hasNext()) {
+		Edge e = gen.next();
+		g.
+	}
+}
+
 static inline Graph randomGraph(Random &rnd, int n, int m, int maxw = 10000000) {
 	Graph g(n);
 	RandomGraphGenerator gen(rnd, n, m, maxw);
 	u64 count = 0;
 	while(gen.hasNext()) {
-		int weight, i, j;
-		tie(weight, i, j) = gen.next();
-		if (i < 0 || i >= n || j <= i || j >= n) {
-			cout << "ERROR " << i << " " << j << endl;
-		}
-		g[i].emplace_back(std::make_pair(weight, j));
-		g[j].emplace_back(std::make_pair(weight, i));
+		Edge e = gen.next();
+		g[e.a].emplace_back(std::make_pair(e.w, e.b));
+		g[e.b].emplace_back(std::make_pair(e.w, e.a));
 		count++;
 	}
 	cout << "edges: " << count << endl;
@@ -108,7 +150,7 @@ static inline vector<Edge> graphToEdges(const Graph &g) {
 	for(int i = 0; i < (int)g.size(); i++) {
 		for (auto &edge: g[i]) {
 			if (i < edge.second) {
-				edges.emplace_back(std::make_tuple(edge.first, i, edge.second));
+				edges.emplace_back(Edge(i, edge.second, edge.first));
 			}
 		}
 	}	

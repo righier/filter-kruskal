@@ -12,6 +12,7 @@ int main(int argc, char **argv) {
 	int N = args.getInt("-n", 20000);
 	int M = args.getInt("-m", 100000000);
 	string S = args.getString("-s", "filterkruskal");
+	bool verbose = args.getBool("-v");
 
 	Random rnd(31);
 
@@ -19,28 +20,33 @@ int main(int argc, char **argv) {
 
 	for (int i = 0; i < 10; i++) {
 
+		Graph graph;
+		vector<Edge> edges;
+
+		if (S == "prim") {
+			graph = randomGraph(rnd, N, M);
+		} else {
+			edges = randomEdges(rnd, N, M);
+
+			if (verbose) {
+				for (Edge e: edges) {
+					cout << "(" << e.a << ") -- (" << e.b << "): " << e.w << endl;
+				}
+			}
+		}
+
 		u64 cost;
 
 		if (S == "kruskal") {
-			auto edges = randomEdges(rnd, N, M);
 			cost = kruskal(edges, N);
-
 		} else if (S == "filterkruskal") {
-			auto edges = randomEdges(rnd, N, M);
 			cost = filterKruskal(edges, N);
-
 		} else if (S == "filterkruskalrec") {
-			auto edges = randomEdges(rnd, N, M);
 			cost = filterKruskalRec(edges, N);
-
 		} else if (S == "filterkruskalrec2") {
-			auto edges = randomEdges(rnd, N, M);
 			cost = filterKruskalRec2(edges, N);
-
 		} else if (S == "prim") {
-			auto graph = randomGraph(rnd, N, M);
 			cost = prim(graph);
-
 		}
 
 		cout << "cost: " << cost << endl;

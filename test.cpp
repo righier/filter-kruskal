@@ -43,7 +43,7 @@ struct RandomGraphGeneratorSet: public GraphGenerator {
 			if (usedEdges.count(ab) == 0) {
 				usedEdges.insert(ab);
 				int weight = rnd.getInt(maxw);
-				return make_tuple(weight, (int)a, (int)b);
+				return Edge((int)a, (int)b, weight);
 			} else {
 				colls++;
 			}
@@ -79,7 +79,7 @@ struct RandomGraphGeneratorDouble : public GraphGenerator {
 	Edge next() {
 		int weight = rnd.getInt(maxw);
 		advance();
-		return make_tuple(weight, a, b);
+		return Edge(a, b, weight);
 	}
 
 	void advance() {
@@ -233,10 +233,9 @@ int main(int argc, char **argv) {
 		int count = 0;
 		int tot = 0;
 		while (gg->hasNext()) {
-			int w, a, b;
-			tie(w, a, b) = gg->next();
+			Edge e = gg->next();
 			// cout << a << " " << b << endl;
-			tot += w + a + b;
+			tot += e.w + e.a + e.b;
 			count++;
 		}
 
