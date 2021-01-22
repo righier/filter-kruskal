@@ -166,10 +166,8 @@ void testDistribution2() {
 int main(int argc, char **argv) {
 	
 	// testDistribution1();
-
-	testDistribution2();
-
-	return 0;
+	// testDistribution2();
+	// return 0;
 
 	
 
@@ -186,6 +184,34 @@ int main(int argc, char **argv) {
 	int maxw = 1000000;
 
 	Random rnd(31);
+
+	int tot = 0;
+
+	if (s == 0) {
+		Graph g = randomGraph(rnd, n, m);
+		for (Node node: g) {
+			for (NodeEdge edge: node) {
+				tot += edge.first + edge.second;
+			}
+		}
+	} else if (s == 1) {
+		BetterGraph g = randomBetterGraph(rnd, n, m);
+		for (int i = 0; i < n; i++) {
+			for (const HalfEdge *edge = g[i]; edge < g[i+1]; edge++) {
+				tot += edge->b + edge->w;
+			}
+		}
+	} else if (s == 2) {
+		vector<Edge> edges = randomEdges(rnd, n, m);
+		for (Edge e: edges) {
+			tot += e.b + e.w;
+		}
+	}
+
+	cout << tot << endl;
+
+	return 0;
+
 	GraphGenerator *gg;
 
 	/*

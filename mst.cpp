@@ -21,11 +21,14 @@ int main(int argc, char **argv) {
 	for (int i = 0; i < 10; i++) {
 
 		Graph graph;
+		BetterGraph bgraph;
 		vector<Edge> edges;
 
 		if (S == "prim") {
 			graph = randomGraph(rnd, N, M);
-		} else {
+		} else if (S == "prim2") {
+			bgraph = randomBetterGraph(rnd, N, M);
+		}else {
 			edges = randomEdges(rnd, N, M);
 
 			if (verbose) {
@@ -47,6 +50,8 @@ int main(int argc, char **argv) {
 			cost = filterKruskalRec2(edges, N);
 		} else if (S == "prim") {
 			cost = prim(graph);
+		} else if (S == "prim2") {
+			cost = prim2(bgraph);
 		}
 
 		cout << "cost: " << cost << endl;

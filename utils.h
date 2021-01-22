@@ -29,18 +29,20 @@ struct Edge {
 };
 
 struct HalfEdge {
-	int other;
-	int weight;
+	int b, w; // b = other node, w = edge weight
 
-	HalfEdge(int other, int weight): other(other), weight(weight) {}
+	HalfEdge() {}
+	HalfEdge(int b, int w): b(b), w(w) {}
 };
 
 typedef vector<HalfEdge>::size_type HSize;
 
+// Representation for static sparse graphs
 struct BetterGraph {
 	vector<HalfEdge> edges;
 	vector<HSize> nodes;
 
+	BetterGraph() {}
 	BetterGraph(int N, const vector<Edge> &oldEdges): nodes(N+1, 0) {
 		// count how many edges there are for every vertex
 		for (Edge e: oldEdges) {
@@ -48,17 +50,28 @@ struct BetterGraph {
 			nodes[e.b+1]++;
 		}
 		// calculate the prefix sum
-		for (int i = 1; i < nodes.size(); i++) {
+		for (HSize i = 1; i < nodes.size(); i++) {
 			nodes[i] += nodes[i-1];
 		}
 		// allocate array for edges (we store every edge 2 times)
 		edges.resize(oldEdges.size() * 2);
 
 		vector<HSize> it = nodes;
-		for (Edge e:oldEdges) {
-			
+		for (Edge e: oldEdges) {
+			edges[it[e.a]++] = HalfEdge(e.b, e.w);
+			edges[it[e.b]++] = HalfEdge(e.a, e.w);
 		}
 	}
+
+	// returns the pointer to the first edge of the node i
+	const HalfEdge *operator[](HSize i) const { 
+		return &edges[nodes[i]];
+	}
+
+	HSize size() const {
+		return nodes.size();
+	}
+
 };
 
 typedef std::pair<int,int> NodeEdge;
@@ -116,17 +129,6 @@ struct RandomGraphGenerator: public GraphGenerator {
 	}
 };
 
-static inline SparseGraph randomGraph(Random &rnd, int n, int m, int maxw = 10000000) {
-	SparseGraph g(n);
-	g.buffer.reserve(m * 2.002); // i need to store every edge two times
-
-	RandomGraphGenerator gen(rnd, n, m, maxw);
-	while (gen.hasNext()) {
-		Edge e = gen.next();
-		g.
-	}
-}
-
 static inline Graph randomGraph(Random &rnd, int n, int m, int maxw = 10000000) {
 	Graph g(n);
 	RandomGraphGenerator gen(rnd, n, m, maxw);
@@ -150,6 +152,12 @@ static inline vector<Edge> randomEdges(Random &rnd, int n, i64 m, int maxw = 100
 	}
 	cout << "edges: " << edges.size() << endl;
 	return edges;
+}
+
+static inline BetterGraph randomBetterGraph(Random &rnd, int n, i64 m, int maxw = 10000000) {
+	vector<Edge> edges = randomEdges(rnd, n, m, maxw);
+	BetterGraph g(n, edges);
+	return g;
 }
 
 static inline vector<Edge> graphToEdges(const Graph &g) {
