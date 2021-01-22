@@ -41,15 +41,22 @@ struct BetterGraph {
 	vector<HalfEdge> edges;
 	vector<HSize> nodes;
 
-	BetterGraph(int N, const vector<Edge> &edges): nodes(N+1, 0) {
+	BetterGraph(int N, const vector<Edge> &oldEdges): nodes(N+1, 0) {
 		// count how many edges there are for every vertex
-		for (Edge e: edges) {
+		for (Edge e: oldEdges) {
 			nodes[e.a+1]++;
 			nodes[e.b+1]++;
 		}
 		// calculate the prefix sum
 		for (int i = 1; i < nodes.size(); i++) {
 			nodes[i] += nodes[i-1];
+		}
+		// allocate array for edges (we store every edge 2 times)
+		edges.resize(oldEdges.size() * 2);
+
+		vector<HSize> it = nodes;
+		for (Edge e:oldEdges) {
+			
 		}
 	}
 };
