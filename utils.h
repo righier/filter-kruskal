@@ -37,6 +37,22 @@ struct HalfEdge {
 
 typedef vector<HalfEdge>::size_type HSize;
 
+struct EdgeIterator {
+	const HalfEdge *_begin, *_end;
+
+	EdgeIterator(const HalfEdge *_begin, const HalfEdge *_end): 
+	_begin(_begin), _end(_end) { }
+
+	const HalfEdge *begin() {
+		return _begin;
+	}
+
+	const HalfEdge *end() {
+		return _end;
+	}
+
+};
+
 // Representation for static sparse graphs
 struct BetterGraph {
 	vector<HalfEdge> edges;
@@ -44,6 +60,11 @@ struct BetterGraph {
 
 	BetterGraph() {}
 	BetterGraph(int N, const vector<Edge> &oldEdges): nodes(N+1, 0) {
+
+		// for (Edge e:oldEdges) {
+		// 	cout << e.a << "--" << e.b << ": " << e.w << endl;
+		// }
+
 		// count how many edges there are for every vertex
 		for (Edge e: oldEdges) {
 			nodes[e.a+1]++;
@@ -61,11 +82,26 @@ struct BetterGraph {
 			edges[it[e.a]++] = HalfEdge(e.b, e.w);
 			edges[it[e.b]++] = HalfEdge(e.a, e.w);
 		}
+
+		// cout << "final representation:\n" << endl;
+		// for (size_t i = 0; i < nodes.size(); i++) {
+		// 	for (const HalfEdge *e = &edges[nodes[i]]; e < &edges[nodes[i]]; e++) {
+		// 		cout << i << "--" e->b << ": " << e->w << endl;
+		// 	}
+		// }
 	}
 
-	// returns the pointer to the first edge of the node i
-	const HalfEdge *operator[](HSize i) const { 
-		return &edges[nodes[i]];
+
+	BetterGraph(vector<HalfEdge> &oldEdges, vector<HSize> oldNodes) {
+		std::swap(edges, oldEdges);
+		std::swap(nodes, oldNodes);
+	}
+
+	EdgeIterator operator[](HSize i) const {
+		auto a = nodes[i];
+		auto b = nodes[i+1];
+		auto _begin = &edges[a];
+		return EdgeIterator(_begin, _begin + (b - a));
 	}
 
 	HSize size() const {

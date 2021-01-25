@@ -178,7 +178,7 @@ int main(int argc, char **argv) {
 
 	int s = atoi(argv[1]);
 
-	int n = 20000;
+	int n = 60000;
 
 	u64 m = 100000000;
 	int maxw = 1000000;
@@ -197,14 +197,14 @@ int main(int argc, char **argv) {
 	} else if (s == 1) {
 		BetterGraph g = randomBetterGraph(rnd, n, m);
 		for (int i = 0; i < n; i++) {
-			for (const HalfEdge *edge = g[i]; edge < g[i+1]; edge++) {
-				tot += edge->b + edge->w;
+			for (const HalfEdge &edge: g[i]) {
+				tot += edge.b + edge.w;
 			}
 		}
 	} else if (s == 2) {
 		vector<Edge> edges = randomEdges(rnd, n, m);
 		for (Edge e: edges) {
-			tot += e.b + e.w;
+			tot += e.a + e.b + 2 * e.w;
 		}
 	}
 

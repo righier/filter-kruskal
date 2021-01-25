@@ -61,11 +61,9 @@ u64 prim2(const BetterGraph &g) {
 		int node = top(h).second;
 		h = pop(h);
 		visited[node] = true;
-		auto begin = g[node];
-		auto end = g[node+1];
-		for (auto edge = begin; edge < end; edge++) {
-			int val = edge->w;
-			int i = edge->b;
+		for (const HalfEdge &edge: g[node]) {
+			int val = edge.w;
+			int i = edge.b;
 			if (val < cost[i].e.first and !visited[i]) {
 				h = decreaseKey(h, &cost[i], val);
 				parent[i] = node;
