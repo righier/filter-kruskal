@@ -10,8 +10,8 @@ int main(int argc, char **argv) {
 	Args args(argc, argv);
 
 	int N = args.getInt("-n", 20000);
-	int M = args.getInt("-m", 100000000);
-	string S = args.getString("-s", "filterkruskal");
+	int M = args.getInt("-m", 10000000);
+	string S = args.getString("-s", "prim2");
 	bool verbose = args.getBool("-v");
 
 	Random rnd(31);

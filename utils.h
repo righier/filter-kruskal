@@ -7,6 +7,9 @@
 #include <tuple>
 #include <algorithm>
 #include <cmath>
+#include <queue>
+
+#include <stdlib.h>
 
 #include "random.h"
 
@@ -35,8 +38,6 @@ struct HalfEdge {
 	HalfEdge(int b, int w): b(b), w(w) {}
 };
 
-typedef vector<HalfEdge>::size_type HSize;
-
 struct EdgeIterator {
 	const HalfEdge *_begin, *_end;
 
@@ -55,57 +56,84 @@ struct EdgeIterator {
 
 // Representation for static sparse graphs
 struct BetterGraph {
-	vector<HalfEdge> edges;
-	vector<HSize> nodes;
+	HalfEdge *edges;
+	u64 *nodes;
 
-	BetterGraph() {}
-	BetterGraph(int N, const vector<Edge> &oldEdges): nodes(N+1, 0) {
+	int N;
+
+	BetterGraph(): edges(NULL), nodes(NULL) {}
+
+	BetterGraph(const BetterGraph &&old) noexcept : edges(old.edges), nodes(old.nodes) {} 
+
+	BetterGraph &operator=(BetterGraph&& other) noexcept {
+		std::swap(edges, other.edges);
+        std::swap(nodes, other.nodes);
+        std::swap(N, other.N);
+
+        return *this;
+    }
+
+	BetterGraph(int N, const vector<Edge> &oldEdges): N(N) {
+		int N2 = N+2;
+
+		// cout << sizeof(HalfEdge) << endl;
+		// cout << 2 * oldEdges.size() << endl;
+		// cout << sizeof(HalfEdge) * 2 * oldEdges.size() << endl;
+
+		edges = (HalfEdge*)malloc(sizeof(HalfEdge) * 2 * oldEdges.size());
+		nodes = (u64*)calloc(N2, sizeof(u64));
+
+		// cout << edges << endl;
+		// cout << nodes << endl;
+		// cout << nodes[0] << endl;
+
+		// std::fill(nodes, nodes + N2, 0);
 
 		// for (Edge e:oldEdges) {
-		// 	cout << e.a << "--" << e.b << ": " << e.w << endl;
+			// cout << e.a << "--" << e.b << ": " << e.w << endl;
 		// }
 
 		// count how many edges there are for every vertex
 		for (Edge e: oldEdges) {
-			nodes[e.a+1]++;
-			nodes[e.b+1]++;
+			nodes[e.a+2]++;
+			nodes[e.b+2]++;
 		}
 		// calculate the prefix sum
-		for (HSize i = 1; i < nodes.size(); i++) {
+		for (int i = 3; i < N2; i++) {
 			nodes[i] += nodes[i-1];
 		}
-		// allocate array for edges (we store every edge 2 times)
-		edges.resize(oldEdges.size() * 2);
 
-		vector<HSize> it = nodes;
 		for (Edge e: oldEdges) {
-			edges[it[e.a]++] = HalfEdge(e.b, e.w);
-			edges[it[e.b]++] = HalfEdge(e.a, e.w);
+			edges[nodes[e.a+1]++] = HalfEdge(e.b, e.w);
+			edges[nodes[e.b+1]++] = HalfEdge(e.a, e.w);
 		}
 
+		// for (int i = 0; i < N2; i++) {
+		// 	cout << nodes[i] << endl;
+		// }
+
 		// cout << "final representation:\n" << endl;
-		// for (size_t i = 0; i < nodes.size(); i++) {
-		// 	for (const HalfEdge *e = &edges[nodes[i]]; e < &edges[nodes[i]]; e++) {
-		// 		cout << i << "--" e->b << ": " << e->w << endl;
+		// for (int i = 0; i < N; i++) {
+		// 	for (const HalfEdge *e = &edges[nodes[i]]; e < &edges[nodes[i+1]]; e++) {
+		// 		cout << i << "--" << e->b << ": " << e->w << endl;
 		// 	}
 		// }
 	}
 
-
-	BetterGraph(vector<HalfEdge> &oldEdges, vector<HSize> oldNodes) {
-		std::swap(edges, oldEdges);
-		std::swap(nodes, oldNodes);
+	~BetterGraph() {
+		free(edges);
+		free(nodes);
 	}
 
-	EdgeIterator operator[](HSize i) const {
+	EdgeIterator operator[](u64 i) const {
 		auto a = nodes[i];
 		auto b = nodes[i+1];
-		auto _begin = &edges[a];
-		return EdgeIterator(_begin, _begin + (b - a));
+		// auto _begin = edges + a;
+		return EdgeIterator(edges + a, edges + b);
 	}
 
-	HSize size() const {
-		return nodes.size();
+	int size() const {
+		return N;
 	}
 
 };

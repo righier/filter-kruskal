@@ -61,7 +61,8 @@ u64 prim2(const BetterGraph &g) {
 		int node = top(h).second;
 		h = pop(h);
 		visited[node] = true;
-		for (const HalfEdge &edge: g[node]) {
+		for (u64 it = g.nodes[node]; it < g.nodes[node+1]; it++) {
+			const HalfEdge &edge = g.edges[it];
 			int val = edge.w;
 			int i = edge.b;
 			if (val < cost[i].e.first and !visited[i]) {
