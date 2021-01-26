@@ -57,7 +57,7 @@ struct EdgeIterator {
 // Representation for static sparse graphs
 struct BetterGraph {
 	HalfEdge *edges;
-	u64 *nodes;
+	HalfEdge **nodes;
 
 	int N;
 
@@ -74,14 +74,13 @@ struct BetterGraph {
     }
 
 	BetterGraph(int N, const vector<Edge> &oldEdges): N(N) {
-		int N2 = N+2;
 
 		// cout << sizeof(HalfEdge) << endl;
 		// cout << 2 * oldEdges.size() << endl;
 		// cout << sizeof(HalfEdge) * 2 * oldEdges.size() << endl;
 
 		edges = (HalfEdge*)malloc(sizeof(HalfEdge) * 2 * oldEdges.size());
-		nodes = (u64*)calloc(N2, sizeof(u64));
+		nodes = (HalfEdge**)malloc((N+1) * sizeof(HalfEdge *));
 
 		// cout << edges << endl;
 		// cout << nodes << endl;
@@ -93,19 +92,31 @@ struct BetterGraph {
 			// cout << e.a << "--" << e.b << ": " << e.w << endl;
 		// }
 
+		// for (int i = 0; i < N; i++) {
+			// cout << (u64)nodes[i] << endl;
+		// }
+
+		vector<u64> count(N, 0);
+
 		// count how many edges there are for every vertex
 		for (Edge e: oldEdges) {
-			nodes[e.a+2]++;
-			nodes[e.b+2]++;
+			count[e.a]++;
+			count[e.b]++;
 		}
+
+		// for (int i = 0; i < N2; i++) {
+		// 	cout << (u64)nodes[i] << endl;
+		// }
 		// calculate the prefix sum
-		for (int i = 3; i < N2; i++) {
-			nodes[i] += nodes[i-1];
+		nodes[0] = nodes[1] = edges;
+		for (int i = 1; i < N; i++) {
+			nodes[i+1] = edges + count[i-1];
+			count[i] += count[i-1];
 		}
 
 		for (Edge e: oldEdges) {
-			edges[nodes[e.a+1]++] = HalfEdge(e.b, e.w);
-			edges[nodes[e.b+1]++] = HalfEdge(e.a, e.w);
+			*(nodes[e.a+1]++) = HalfEdge(e.b, e.w);
+			*(nodes[e.b+1]++) = HalfEdge(e.a, e.w);
 		}
 
 		// for (int i = 0; i < N2; i++) {
@@ -129,7 +140,7 @@ struct BetterGraph {
 		auto a = nodes[i];
 		auto b = nodes[i+1];
 		// auto _begin = edges + a;
-		return EdgeIterator(edges + a, edges + b);
+		return EdgeIterator(a, b);
 	}
 
 	int size() const {

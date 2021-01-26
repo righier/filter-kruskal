@@ -9,8 +9,8 @@
 int main(int argc, char **argv) {
 	Args args(argc, argv);
 
-	int N = args.getInt("-n", 20000);
-	int M = args.getInt("-m", 10000000);
+	int N = args.getInt("-n", 10);
+	int M = args.getInt("-m", 25);
 	string S = args.getString("-s", "prim2");
 	bool verbose = args.getBool("-v");
 
