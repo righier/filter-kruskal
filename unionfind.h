@@ -17,13 +17,13 @@ struct DisjointSet {
 	}
 
 	// recursive path compression
-	int find(int x) {
+	int find1(int x) {
 		if (p[x] == x) return x;
 		return (p[x] = find(p[x]));
 	}
 
 	// iterative path compression
-	int find2(int x) {
+	int find(int x) {
 		int root = x;
 		while (root != p[root]) root = p[root];
 		while (x != root) {
@@ -53,25 +53,36 @@ struct DisjointSet {
 		return x;
 	}
 
+	bool compare(int a, int b) {
+		int pa = p[a];
+		int pb = p[b];
+		if (pa == pb) return true;
+		p[a] = pa = find(pa);
+		p[b] = pb = find(pb);
+		return pa == pb;
+	}
+
 	// union by rank
 	void merge(int a, int b) {
-		int aa = find(a);
-		int bb = find(b);
-		if (r[aa] < r[bb]) swap(aa, bb);
-		else if (r[aa] == r[bb]) r[aa]++;
-		p[bb] = aa;
+		int pa = find(a);
+		int pb = find(b);
+		if (r[pa] < r[pb]) swap(pa, pb);
+		else if (r[pa] == r[pb]) r[pa]++;
+		p[pb] = pa;
 	}
 
 	// union by rank
 	bool checkMerge(int a, int b) {
-		if (p[a] == p[b]) return false;
-		int aa = find(a);
-		int bb = find(b);
-		if (aa == bb) return false;
+		int pa = p[a];
+		int pb = p[b];
+		if (pa == pb) return false;
+		p[a] = pa = find(pa);
+		p[b] = pb = find(pb);
+		if (pa == pb) return false;
 
-		if (r[aa] < r[bb]) swap(aa, bb);
-		else if (r[aa] == r[bb]) r[aa]++;
-		p[bb] = aa;
+		if (r[pa] < r[pb]) swap(pa, pb);
+		else if (r[pa] == r[pb]) r[pa]++;
+		p[pb] = pa;
 		return true;
 	}
 

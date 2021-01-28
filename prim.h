@@ -17,7 +17,7 @@ u64 prim(const Graph &g) {
 	vector<bool> visited(N, false);
 	
 	cost[0].e.first = 0;
-	PairingHeap *h = cost.data();
+	PairingHeap *h = &cost[0];
 
 	while(h != NULL) {
 		int node = top(h).second;
@@ -55,16 +55,15 @@ u64 prim2(const BetterGraph &g) {
 	vector<bool> visited(N, false);
 	
 	cost[0].e.first = 0;
-	PairingHeap *h = cost.data();
+	PairingHeap *h = &cost[0];
 
 	while(h != NULL) {
 		int node = top(h).second;
 		h = pop(h);
 		visited[node] = true;
-		const HalfEdge *end = g.nodes[node+1];
-		for (const HalfEdge *edge = g.nodes[node]; edge < end; ++edge) {
-			int val = edge->w;
-			int i = edge->b;
+		for (const pair<int,int> &edge: g[node]) {
+			int val = edge.first;
+			int i = edge.second;
 			if (val < cost[i].e.first and !visited[i]) {
 				h = decreaseKey(h, &cost[i], val);
 				parent[i] = node;

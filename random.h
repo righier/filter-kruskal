@@ -28,6 +28,18 @@ struct Random {
 		return getInt(max - min) + min;
 	}
 
+	uint64_t getULong() {
+		return next();
+	}
+
+	uint64_t getULong(uint64_t max) {
+		return next() % max;
+	}
+
+	uint64_t getULong(uint64_t min, uint64_t max) {
+		return min + getULong(max - min);
+	}
+
 private:
 
 	uint64_t s[2];

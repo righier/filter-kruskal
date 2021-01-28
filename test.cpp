@@ -195,13 +195,20 @@ int main(int argc, char **argv) {
 			}
 		}
 	} else if (s == 1) {
-		BetterGraph g = randomBetterGraph(rnd, n, m);
-		for (int i = 0; i < n; i++) {
-			for (const HalfEdge &edge: g[i]) {
-				tot += edge.b + edge.w;
+		Graph g = randomGraph2(rnd, n, m);
+		for (Node node: g) {
+			for (NodeEdge edge: node) {
+				tot += edge.first + edge.second;
 			}
 		}
 	} else if (s == 2) {
+		BetterGraph g = randomBetterGraph(rnd, n, m);
+		for (int i = 0; i < n; i++) {
+			for (const NodeEdge &edge: g[i]) {
+				tot += edge.first + edge.second;
+			}
+		}
+	} else if (s == 3) {
 		vector<Edge> edges = randomEdges(rnd, n, m);
 		for (Edge e: edges) {
 			tot += e.a + e.b + 2 * e.w;

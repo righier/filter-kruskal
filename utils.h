@@ -17,9 +17,14 @@ using namespace std;
 
 typedef uint64_t u64;
 typedef int64_t i64;
+typedef uint32_t u32;
 typedef uint8_t u8;
 
 #define UNUSED(x) (void)(x)
+
+typedef std::pair<int,int> NodeEdge;
+typedef std::vector<NodeEdge> Node;
+typedef std::vector<Node> Graph;
 
 struct Edge {
 	int a, b, w;
@@ -38,120 +43,95 @@ struct HalfEdge {
 	HalfEdge(int b, int w): b(b), w(w) {}
 };
 
-struct EdgeIterator {
-	const HalfEdge *_begin, *_end;
+typedef vector<NodeEdge>::size_type HSize;
 
-	EdgeIterator(const HalfEdge *_begin, const HalfEdge *_end): 
+struct EdgeIterator {
+	const NodeEdge *_begin, *_end;
+
+	EdgeIterator(const NodeEdge *_begin, const NodeEdge *_end): 
 	_begin(_begin), _end(_end) { }
 
-	const HalfEdge *begin() {
-		return _begin;
+	const NodeEdge *begin() { return _begin; }
+	const NodeEdge *end() { return _end; }
+
+};
+
+struct LinkNode {
+	int w, b;
+	i64 next;
+
+	LinkNode() {}
+	LinkNode(int w, int b, i64 next): w(w), b(b), next(next) {}
+};
+
+struct LinkedGraph {
+	vector<LinkNode> buffer;
+	vector<i64> nodes;
+
+	LinkedGraph(int n) : nodes(n, -1) {}
+
+	void addHalf(int a, int b, int w) {
+		i64 next = nodes[a];
+		nodes[a] = buffer.size();
+		buffer.emplace_back(LinkNode(w, b, next));
+		nodes[a];
 	}
 
-	const HalfEdge *end() {
-		return _end;
+	void add(const Edge &e) {
+		addHalf(e.a, e.b, e.w);
+		addHalf(e.b, e.a, e.w);
 	}
 
 };
 
 // Representation for static sparse graphs
 struct BetterGraph {
-	HalfEdge *edges;
-	HalfEdge **nodes;
+	vector<NodeEdge> edges;
+	vector<int> nodes;
 
-	int N;
-
-	BetterGraph(): edges(NULL), nodes(NULL) {}
-
-	BetterGraph(const BetterGraph &&old) noexcept : edges(old.edges), nodes(old.nodes) {} 
-
-	BetterGraph &operator=(BetterGraph&& other) noexcept {
-		std::swap(edges, other.edges);
-        std::swap(nodes, other.nodes);
-        std::swap(N, other.N);
-
-        return *this;
-    }
-
-	BetterGraph(int N, const vector<Edge> &oldEdges): N(N) {
-
-		// cout << sizeof(HalfEdge) << endl;
-		// cout << 2 * oldEdges.size() << endl;
-		// cout << sizeof(HalfEdge) * 2 * oldEdges.size() << endl;
-
-		edges = (HalfEdge*)malloc(sizeof(HalfEdge) * 2 * oldEdges.size());
-		nodes = (HalfEdge**)malloc((N+1) * sizeof(HalfEdge *));
-
-		// cout << edges << endl;
-		// cout << nodes << endl;
-		// cout << nodes[0] << endl;
-
-		// std::fill(nodes, nodes + N2, 0);
-
-		// for (Edge e:oldEdges) {
-			// cout << e.a << "--" << e.b << ": " << e.w << endl;
-		// }
-
-		// for (int i = 0; i < N; i++) {
-			// cout << (u64)nodes[i] << endl;
-		// }
-
-		vector<u64> count(N, 0);
+	BetterGraph() {}
+	BetterGraph(int N, const vector<Edge> &oldEdges): nodes(N+1, 0) {
 
 		// count how many edges there are for every vertex
 		for (Edge e: oldEdges) {
-			count[e.a]++;
-			count[e.b]++;
+			nodes[e.a+1]++;
+			nodes[e.b+1]++;
 		}
-
-		// for (int i = 0; i < N2; i++) {
-		// 	cout << (u64)nodes[i] << endl;
-		// }
 		// calculate the prefix sum
-		nodes[0] = nodes[1] = edges;
-		for (int i = 1; i < N; i++) {
-			nodes[i+1] = edges + count[i-1];
-			count[i] += count[i-1];
+		for (int i = 1; i < (int)nodes.size(); i++) {
+			nodes[i] += nodes[i-1];
 		}
+		// allocate array for edges (we store every edge 2 times)
+		edges.resize(oldEdges.size() * 2);
 
+		vector<int> it = nodes;
 		for (Edge e: oldEdges) {
-			*(nodes[e.a+1]++) = HalfEdge(e.b, e.w);
-			*(nodes[e.b+1]++) = HalfEdge(e.a, e.w);
+			edges[it[e.a]++] = make_pair(e.w, e.b);
+			edges[it[e.b]++] = make_pair(e.w, e.a);
 		}
 
-		// for (int i = 0; i < N2; i++) {
-		// 	cout << nodes[i] << endl;
-		// }
-
-		// cout << "final representation:\n" << endl;
-		// for (int i = 0; i < N; i++) {
-		// 	for (const HalfEdge *e = &edges[nodes[i]]; e < &edges[nodes[i+1]]; e++) {
-		// 		cout << i << "--" << e->b << ": " << e->w << endl;
-		// 	}
-		// }
 	}
 
-	~BetterGraph() {
-		free(edges);
-		free(nodes);
+
+	BetterGraph(vector<NodeEdge> &oldEdges, vector<int> &oldNodes) {
+		std::swap(edges, oldEdges);
+		std::swap(nodes, oldNodes);
 	}
 
-	EdgeIterator operator[](u64 i) const {
+	EdgeIterator operator[](HSize i) const {
 		auto a = nodes[i];
 		auto b = nodes[i+1];
-		// auto _begin = edges + a;
-		return EdgeIterator(a, b);
+		auto _begin = &edges[a];
+		return EdgeIterator(_begin, _begin + (b - a));
 	}
 
-	int size() const {
-		return N;
+	HSize size() const {
+		return nodes.size();
 	}
 
 };
 
-typedef std::pair<int,int> NodeEdge;
-typedef std::vector<NodeEdge> Node;
-typedef std::vector<Node> Graph;
+
 
 struct GraphGenerator {
 
@@ -204,7 +184,9 @@ struct RandomGraphGenerator: public GraphGenerator {
 	}
 };
 
-static inline Graph randomGraph(Random &rnd, int n, int m, int maxw = 10000000) {
+#define MAXW INT_MAX
+
+static inline Graph randomGraph(Random &rnd, int n, int m, int maxw = MAXW) {
 	Graph g(n);
 	RandomGraphGenerator gen(rnd, n, m, maxw);
 	u64 count = 0;
@@ -218,7 +200,7 @@ static inline Graph randomGraph(Random &rnd, int n, int m, int maxw = 10000000) 
 	return g;
 }
 
-static inline vector<Edge> randomEdges(Random &rnd, int n, i64 m, int maxw = 10000000) {
+static inline vector<Edge> randomEdges(Random &rnd, int n, i64 m, int maxw = MAXW) {
 	vector<Edge> edges;
 	edges.reserve(m * 1.001); // for very large graphs the number of edges is really close to m
 	RandomGraphGenerator gen(rnd, n, m, maxw);
@@ -229,9 +211,54 @@ static inline vector<Edge> randomEdges(Random &rnd, int n, i64 m, int maxw = 100
 	return edges;
 }
 
-static inline BetterGraph randomBetterGraph(Random &rnd, int n, i64 m, int maxw = 10000000) {
+static inline Graph randomGraph2(Random &rnd, int n, int m, int maxw = MAXW) {
 	vector<Edge> edges = randomEdges(rnd, n, m, maxw);
-	BetterGraph g(n, edges);
+	vector<int> counts(n, 0);
+	for (Edge &edge: edges) {
+		++counts[edge.a];
+		++counts[edge.b];
+	}
+
+	Graph g(n);
+	for (int i = 0; i < n; i++) {
+		g[i].reserve(counts[i]);
+	}
+
+	for (Edge &edge: edges) {
+		g[edge.a].emplace_back(std::make_pair(edge.w, edge.b));
+		g[edge.b].emplace_back(std::make_pair(edge.w, edge.a));
+	}
+
+	return g;
+}
+
+static inline BetterGraph randomBetterGraph(Random &rnd, int n, i64 m, int maxw = MAXW) {
+	RandomGraphGenerator gen(rnd, n, m, maxw);
+	vector<int> nodes(n+2, 0);
+	vector<Edge> edges;
+	edges.reserve(m * 1.001);
+	while(gen.hasNext()) {
+		Edge e = gen.next();
+		edges.push_back(e);
+		++nodes[e.a+2];
+		++nodes[e.b+2];
+	}
+
+	for (int i = 3; i < n+2; i++) {
+		nodes[i] += nodes[i-1];
+	}
+
+	vector<NodeEdge> buffer(2*edges.size());
+
+	for (Edge &e: edges) {
+		buffer[nodes[e.a+1]++] = make_pair(e.w, e.b);
+		buffer[nodes[e.b+1]++] = make_pair(e.w, e.a);
+	}
+
+	BetterGraph g(buffer, nodes);
+
+	cout << "edges: " << edges.size() << endl;
+
 	return g;
 }
 

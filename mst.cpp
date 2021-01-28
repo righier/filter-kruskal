@@ -4,14 +4,16 @@
 #include "args.h"
 
 #include "kruskal.h"
+#include "filterkruskal.h"
 #include "prim.h"
+#include "samplesort.h"
 
 int main(int argc, char **argv) {
 	Args args(argc, argv);
 
-	int N = args.getInt("-n", 10);
-	int M = args.getInt("-m", 25);
-	string S = args.getString("-s", "prim2");
+	int N = args.getInt("-n", 20000);
+	int M = args.getInt("-m", 10000000);
+	string S = args.getString("-s", "filterkruskalrec2");
 	bool verbose = args.getBool("-v");
 
 	Random rnd(31);
