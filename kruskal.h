@@ -6,7 +6,7 @@
 typedef vector<Edge>::iterator EdgeIt;
 typedef vector<Edge>::size_type ISize;
 
-bool addEdgeToMst(DisjointSet &set, const Edge &e, int &card, int &cost) {
+bool addEdgeToMst(DisjointSet &set, const Edge &e, int &card, u64 &cost) {
 	if (set.checkMerge(e.a, e.b)) {
 		cost += e.w;
 		++card;

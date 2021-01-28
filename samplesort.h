@@ -8,9 +8,9 @@ constexpr size_t numBuckets = 1 << logBuckets;
 constexpr size_t numPivots = numBuckets - 1;
 
 // calculates the sample size based on an oversampling coefficient
-ISize calcSampleSize(ISize n, ISize k) {
-	double r = sqrt(double(n) / (2 * numBuckets * (logBuckets + 4)));
-	return ISize(k * max(r, 1.0));
+ISize calcSampleSize(ISize M) {
+	double r = sqrt(double(M) / (2 * numBuckets * (logBuckets + 4)));
+	return ISize(numPivots * max(r, 1.0));
 }
 
 // extracts a sample from the list 
@@ -24,12 +24,13 @@ void sample(vector<Edge> &edges, ISize begin, ISize end, ISize sampleSize) {
 	}
 }
 
+// this need to be called with pos == 1
 // this works if beginSamples + endSamples doesn't overflow 
 // AND if edges.size() >= (sampleSize + numPivots);
-void buildTree(vector<Edge> &edges, ISize beginEdges, ISize beginSamples, ISize endSamples, vector<int> &pivots, int pos) {
+void buildTree(vector<Edge> &edges, ISize beginEdges, ISize beginSamples, ISize endSamples, vector<int> &pivots, u32 pos) {
 	ISize mid = (beginSamples + endSamples) / 2;
 	pivots[pos] = edges[mid].w;
-	swap(edges[mid], edges[beginEdges]);
+	// swap(edges[mid], edges[beginEdges]);
 	if (2 * pos < numPivots) {
 		buildTree(edges, 2*beginEdges, beginSamples, mid, pivots, 2*pos);
 		buildTree(edges, 2*beginEdges+1, mid+1, endSamples, pivots, 2*pos+1);
@@ -38,7 +39,7 @@ void buildTree(vector<Edge> &edges, ISize beginEdges, ISize beginSamples, ISize 
 
 // builds the binary search tree used to identify the buckets
 // the first pivot is at position 1 in the array
-void buildTree(vector<Edge> &edges, ISize begin, ISize end, vector<int> &pivots, int sampleSize) {
+void buildTree(vector<Edge> &edges, ISize begin, ISize end, vector<int> &pivots, ISize sampleSize) {
 	buildTree(edges, begin, end - sampleSize, end, pivots, 1);
 }
 
@@ -47,7 +48,7 @@ void buildTree(vector<Edge> &edges, ISize begin, ISize end, vector<int> &pivots,
 // the number of buckets cannot be greater than 256
 u8 findBucket(const vector<int> &pivots, int val) {
 	u32 id = 1;
-	for (int i = 0; i < logBuckets; i++) {
+	for (u32 i = 0; i < logBuckets; i++) {
 		id = 2 * id + (val > pivots[id]);
 	}
 	return u8(id - numBuckets); // in the paper it says id - k + 1, but this should be correct
@@ -67,7 +68,7 @@ void assignBuckets(vector<Edge> &edges, ISize begin, ISize end, const vector<int
 // calculates the offset of every bucket starting from the start of the edges array
 void prefixSum(vector<ISize> &bucketSizes, ISize begin) {
 	ISize sum = begin;
-	for (int i = 0; i < numBuckets; i++) {
+	for (u32 i = 0; i < numBuckets; i++) {
 		ISize curr = bucketSizes[i];
 		bucketSizes[i] = sum;
 		sum += curr;
@@ -81,11 +82,63 @@ void distribute(vector<Edge> &edges, vector<Edge> &outEdges, ISize begin, ISize 
 	}
 }
 
-u64 sampleKruskal(DisjointSet &set, vector<Edge> &edges, vector<Edge> &outEdges, ISize begin, ISize end, vector<u8> &bucketIds) {
-	
+u64 sampleKruskal(DisjointSet &set, vector<Edge> &edges, vector<Edge> &outEdges, ISize begin, ISize end, int N, vector<u8> &bucketIds, int &card) {
+	static vector<int> pivots(numPivots);
+
+	ISize M = end - begin;
+	if (M <= 1024) {
+		return kruskal(set, edges, begin, end, N, card, true);
+	}
+
+	ISize sampleSize = calcSampleSize(M);
+
+	vector<ISize> bucketSizes(numBuckets);
+
+	sample(edges, begin, end, sampleSize);
+	buildTree(edges, begin, end, pivots, sampleSize);
+	assignBuckets(edges, begin, end, pivots, bucketSizes, bucketIds);
+	prefixSum(bucketSizes, begin);
+	distribute(edges, outEdges, begin, end, bucketSizes, bucketIds);
+
+	u64 cost = 0;
+
+	ISize newBegin = begin;
+	for (u32 i = 0; i < numBuckets; i++) {
+		ISize newEnd = bucketSizes[i];
+		if (i > 0) {
+			newEnd = filterAll(set, edges, begin, end);
+		}
+		cost += sampleKruskal(set, outEdges, edges, newBegin, newEnd, N, bucketIds, card);
+		newBegin = newEnd;
+
+		if (card >= N-1) {
+			break;
+		}
+	}
+
+	return cost;
 }
 
-// partition in 2^k partitions
-vector<vector<Edge>> kWayPartitioning(DisjointSet &set, vector<Edge> &edges, vector<Edge> &outEdges, const vector<int> &pivots, bool doFilter) {
-	vector<vector<Edge>> partitions(pivots.size()+1);
+u64 bucketKruskal(DisjointSet &set, vector<Edge> &edges, vector<Edge> &outEdges, ISize begin, ISize end, int N, int &card, bool doFilter = false) {
+
+
+}
+
+
+
+u64 sampleKruskal(vector<Edge> &edges, int N) {
+	int M = edges.size();
+	vector<Edge> outEdges(M);
+	vector<u8> bucketIds(M);
+	DisjointSet set(N);
+	int card = 0;
+	return sampleKruskal(set, edges, outEdges, 0, M, N, bucketIds, card);
+}
+
+u64 bucketKruskal(vector<Edge> &edges, int N) {
+	int M = edges.size();
+	vector<Edge> outEdges(M);
+	DisjointSet set(N);
+	int card = 0;
+	return bucketKruskal(set, edges, outEdges, 0, M, N, card);
 }

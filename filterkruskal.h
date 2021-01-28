@@ -13,6 +13,19 @@ bool filter(DisjointSet &set, int a, int b) {
 	return set.compare(a, b);
 }
 
+// filter edges and returns the new end index of the array
+ISize filterAll(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end) {
+	while (begin < end) {
+		Edge &e = edges[begin];
+		if (filter(set, e.a, e.b)) {
+			edges[begin] = edges[--end];
+		} else {
+			++begin;
+		}
+	}
+	return end;
+}
+
 // better strategy if the array has many repetitions
 pair<ISize, ISize> threeWayPartitioning(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int pivotVal, bool doFilter) {
 	static vector<Edge> temp;
@@ -21,7 +34,7 @@ pair<ISize, ISize> threeWayPartitioning(DisjointSet &set, vector<Edge> &edges, I
 	ISize endA = begin, it = begin, beginB = end;
 
 	while (it != beginB) {
-		Edge e = edges[it];
+		Edge &e = edges[it];
 
 		if (doFilter && filter(set, e.a, e.b)) {
 			++it;

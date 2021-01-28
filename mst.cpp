@@ -31,7 +31,8 @@ int main(int argc, char **argv) {
 		} else if (S == "prim2") {
 			bgraph = randomBetterGraph(rnd, N, M);
 		}else {
-			edges = randomEdges(rnd, N, M);
+			edges = randomEdges(rnd, N-1, M);
+			edges.push_back(Edge(0, edges.size(), INT_MAX));
 
 			if (verbose) {
 				for (Edge e: edges) {
@@ -50,6 +51,8 @@ int main(int argc, char **argv) {
 			cost = filterKruskalRec(edges, N);
 		} else if (S == "filterkruskalrec2") {
 			cost = filterKruskalRec2(edges, N);
+		} else if (S == "samplekruskal") {
+			cost = sampleKruskal(edges, N);
 		} else if (S == "prim") {
 			cost = prim(graph);
 		} else if (S == "prim2") {

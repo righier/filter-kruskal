@@ -29,6 +29,7 @@ typedef std::vector<Node> Graph;
 struct Edge {
 	int a, b, w;
 
+	Edge() {}
 	Edge(int a, int b, int w): a(a), b(b), w(w) {}
 
 	bool operator<(const Edge &rhs) {
