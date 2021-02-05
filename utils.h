@@ -22,6 +22,16 @@ typedef uint8_t u8;
 
 #define UNUSED(x) (void)(x)
 
+bool verbose();
+
+template <typename T>
+ostream& operator<<(ostream& out, std::vector<T> const& v) {
+    for (auto const &x : v) {
+    	out << x << " ";
+    }
+    return out;
+}
+
 typedef std::pair<int,int> NodeEdge;
 typedef std::vector<NodeEdge> Node;
 typedef std::vector<Node> Graph;

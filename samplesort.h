@@ -106,7 +106,7 @@ u64 sampleKruskal(DisjointSet &set, vector<Edge> &edges, vector<Edge> &outEdges,
 	for (u32 i = 0; i < numBuckets; i++) {
 		ISize newEnd = bucketSizes[i];
 		if (i > 0) {
-			newEnd = filterAll(set, edges, begin, end);
+			newEnd = filterAll(set, outEdges, newBegin, newEnd);
 		}
 		cost += sampleKruskal(set, outEdges, edges, newBegin, newEnd, N, bucketIds, card);
 		newBegin = newEnd;
@@ -119,13 +119,6 @@ u64 sampleKruskal(DisjointSet &set, vector<Edge> &edges, vector<Edge> &outEdges,
 	return cost;
 }
 
-u64 bucketKruskal(DisjointSet &set, vector<Edge> &edges, vector<Edge> &outEdges, ISize begin, ISize end, int N, int &card, bool doFilter = false) {
-
-
-}
-
-
-
 u64 sampleKruskal(vector<Edge> &edges, int N) {
 	int M = edges.size();
 	vector<Edge> outEdges(M);
@@ -135,10 +128,3 @@ u64 sampleKruskal(vector<Edge> &edges, int N) {
 	return sampleKruskal(set, edges, outEdges, 0, M, N, bucketIds, card);
 }
 
-u64 bucketKruskal(vector<Edge> &edges, int N) {
-	int M = edges.size();
-	vector<Edge> outEdges(M);
-	DisjointSet set(N);
-	int card = 0;
-	return bucketKruskal(set, edges, outEdges, 0, M, N, card);
-}

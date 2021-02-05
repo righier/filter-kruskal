@@ -7,6 +7,13 @@
 #include "filterkruskal.h"
 #include "prim.h"
 #include "samplesort.h"
+#include "bucketkruskal.h"
+
+bool isVerbose = false;
+
+bool verbose() {
+	return isVerbose;
+}
 
 int main(int argc, char **argv) {
 	Args args(argc, argv);
@@ -14,7 +21,7 @@ int main(int argc, char **argv) {
 	int N = args.getInt("-n", 20000);
 	int M = args.getInt("-m", 10000000);
 	string S = args.getString("-s", "filterkruskalrec2");
-	bool verbose = args.getBool("-v");
+	isVerbose = args.getBool("-v");
 
 	Random rnd(31);
 
@@ -30,11 +37,11 @@ int main(int argc, char **argv) {
 			graph = randomGraph(rnd, N, M);
 		} else if (S == "prim2") {
 			bgraph = randomBetterGraph(rnd, N, M);
-		}else {
+		} else {
 			edges = randomEdges(rnd, N-1, M);
 			edges.push_back(Edge(0, edges.size(), INT_MAX));
 
-			if (verbose) {
+			if (false && verbose()) {
 				for (Edge e: edges) {
 					cout << "(" << e.a << ") -- (" << e.b << "): " << e.w << endl;
 				}
@@ -53,6 +60,8 @@ int main(int argc, char **argv) {
 			cost = filterKruskalRec2(edges, N);
 		} else if (S == "samplekruskal") {
 			cost = sampleKruskal(edges, N);
+		} else if (S == "bucketkruskal") {
+			cost = bucketKruskal(edges, N);
 		} else if (S == "prim") {
 			cost = prim(graph);
 		} else if (S == "prim2") {

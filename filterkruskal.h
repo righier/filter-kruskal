@@ -6,7 +6,7 @@
 ISize kruskalThreshold(int N, ISize M) {
 	UNUSED(M);
 	UNUSED(N);
-	return 1000;
+	return 10;
 }
 
 bool filter(DisjointSet &set, int a, int b) {
