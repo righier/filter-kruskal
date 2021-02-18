@@ -18,6 +18,13 @@ int pickPivotRandom(vector<Edge> &edges, ISize begin, ISize end) {
 	return edges[rnd.getULong(begin, end)].w;
 }
 
+ISize pickPivotRandomPos(vector<Edge> &edges, ISize begin, ISize end) {
+	UNUSED(edges);
+	static Random rnd(31);
+
+	return rnd.getULong(begin, end);
+}
+
 // sample only 3 elements: first, middle, last
 int pickPivotSample3(vector<Edge> &edges, ISize begin, ISize end) {
 	int a = edges[begin].w;

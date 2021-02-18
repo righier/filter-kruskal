@@ -4,10 +4,6 @@
 
 u64 bucketKruskal(DisjointSet &set, vector<Edge> &edges, vector<Edge> &outEdges, ISize begin, ISize end, int N, int &card, bool doFilter = false) {
 
-	if (verbose()) {
-		cout << "WTF" << endl;
-	}
-
 	if (doFilter) {
 		filterAll(set, edges, begin, end);
 	}

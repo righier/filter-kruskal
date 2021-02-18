@@ -73,6 +73,8 @@ struct DisjointSet {
 
 	// union by rank
 	bool checkMerge(int a, int b) {
+		assert((u64)a < p.size());
+		assert((u64)b < p.size());
 		int pa = p[a];
 		int pb = p[b];
 		if (pa == pb) return false;

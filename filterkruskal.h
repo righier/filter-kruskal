@@ -49,7 +49,46 @@ pair<ISize, ISize> threeWayPartitioning(DisjointSet &set, vector<Edge> &edges, I
 	return make_pair(endA, beginB);
 }
 
+pair<ISize, ISize> twoWayPartitioning(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int pivotVal, bool doFilter) {
+	ISize endA = begin, it = begin, beginB = end;
 
+	while (it < beginB) {
+		if (doFilter && filter(set, e.a, e.b)) {
+			
+		}
+
+		if (edges[begin].w > pivotVal) {
+			std::swap(edges[begin], edges[--end]);
+		} else {
+			++begin;
+		}
+	}
+
+	return end;
+}
+
+u64 filterKruskalRec(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int N, int &card, bool doFilter = false) {
+	ISize M = end - begin;
+
+	if (M <= kruskalThreshold(N, M)) {
+		return kruskal(set, edges, begin, end, N, card, true);
+	}
+
+	ISize pivot = pickPivotRandomPos(edges, begin, end);
+	int pivotVal = edges[pivot].w;
+	std::swap(edges[begin], edges[pivot]);
+	++begin;
+
+	ISize beginB = twoWayPartitioning(set, edges, begin, end, pivotVal, doFilter);
+
+	u64 cost = filterKruskalRec(set, edges, begin, beginB, N, card, false);
+
+	if (card < N-1) {
+		u64 cost = filterKruskalRec(set, edges, begin, beginB, N, card, false);
+	}
+}
+
+/*
 u64 filterKruskalRec(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int N, int &card, bool doFilter = false) {
 	ISize M = end - begin;
 
@@ -71,6 +110,7 @@ u64 filterKruskalRec(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize e
 
 	return cost;
 }
+*/
 
 u64 filterKruskalRec2(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int N, int &card, bool doFilter = false) {
 	ISize M = end - begin;
@@ -83,11 +123,16 @@ u64 filterKruskalRec2(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize 
 	ISize endA, beginB;
 	tie(endA, beginB) = threeWayPartitioning(set, edges, begin, end, pivotVal, doFilter);
 
-	u64 cost = filterKruskalRec2(set, edges, begin, endA, N, card);
+	int oldCard = card;
+	u64 cost = filterKruskalRec2(set, edges, begin, endA, N, card, false);
 	if (card < N-1) {
 		cost += kruskal(set, edges, endA, beginB, N, card, false);
 		if (card < N-1) {
-			cost += filterKruskalRec2(set, edges, beginB, end, N, card, true);
+			doFilter = (card - oldCard) > 0;
+			if (doFilter == 0) {
+				cout << "saved: " << end - beginB << endl;
+			}
+			cost += filterKruskalRec2(set, edges, beginB, end, N, card, doFilter);
 		}
 	}
 

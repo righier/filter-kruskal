@@ -2,6 +2,7 @@
 
 #include "utils.h"
 #include "args.h"
+#include "timer.h"
 
 #include "kruskal.h"
 #include "filterkruskal.h"
@@ -27,6 +28,8 @@ int main(int argc, char **argv) {
 
 	cout << N << " " << M << endl;
 
+	Timer<> timer;
+
 	for (int i = 0; i < 10; i++) {
 
 		Graph graph;
@@ -39,7 +42,7 @@ int main(int argc, char **argv) {
 			bgraph = randomBetterGraph(rnd, N, M);
 		} else {
 			edges = randomEdges(rnd, N-1, M);
-			edges.push_back(Edge(0, edges.size(), INT_MAX));
+			edges.push_back(Edge(0, N-1, INT_MAX));
 
 			if (false && verbose()) {
 				for (Edge e: edges) {
@@ -47,6 +50,8 @@ int main(int argc, char **argv) {
 				}
 			}
 		}
+
+		timer.start();
 
 		u64 cost;
 
@@ -68,8 +73,12 @@ int main(int argc, char **argv) {
 			cost = prim2(bgraph);
 		}
 
-		cout << "cost: " << cost << endl;
+		double delta = timer.delta();
+
+		cout << "cost: " << cost << " , time: " << 1000 * delta << endl;
 	}
+
+	cout << "average time: " << 1000 * timer.avg() << endl;
 
 	return 0;
 }
