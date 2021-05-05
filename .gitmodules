@@ -1,0 +1,3 @@
+[submodule "randomgraphs"]
+	path = randomgraphs
+	url = https://github.com/righier/random-graphs.git
