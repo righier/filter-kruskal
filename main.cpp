@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
 	int N = args.getInt("-n", 20000);
 	int M = args.getInt("-m", 10000000);
 	string S = args.getString("-s", "kruskal");
-	string G = args.getString("-g", "randomweights");
+	string G = args.getString("-g", "randgraph");
 	isVerbose = args.getBool("-v");
 
 	Random rnd(31);
@@ -37,19 +37,22 @@ int main(int argc, char **argv) {
 	for (int i = 0; i < 10; i++) {
 
 		Graph graph;
-		BetterGraph bgraph;
 		vector<Edge> edges;
 
 		genTimer.start();
 
-		if (G == "randomweights") {
+		if (G == "randgraph") {
 			edges = randomGraph(rnd, N, M, 1.0f);
+		} else if (G == "geomgraph") {
+			edges = randomGeometricGraphFast(rnd, N, M, 1.0f);
+		} else if (G == "hardgraph") {
+			edges = randomGraphOneLong(rnd, N, M, 1.0f);
 		} else {
-			cout << "ERROR" << endl;
-			assert(false);
+			cout << "invalid generator name" << endl;
+			unreachable();
 		}
 
-		if (false && verbose()) {
+		if (verbose()) {
 			for (Edge e : edges) {
 				cout << "(" << e.a << ") -- (" << e.b << "): " << e.w << endl;
 			}
@@ -64,7 +67,7 @@ int main(int argc, char **argv) {
 
 		timer.start();
 
-		u64 cost;
+		float cost;
 
 		if (S == "kruskal") {
 			cost = kruskal(edges, N);
@@ -80,8 +83,9 @@ int main(int argc, char **argv) {
 			cost = bucketKruskal(edges, N);
 		} else if (S == "prim") {
 			cost = prim(graph);
-		} else if (S == "prim2") {
-			cost = prim2(bgraph);
+		} else {
+			cout << "invalid algorithm name" << endl;
+			unreachable();
 		}
 
 		double delta = timer.delta();

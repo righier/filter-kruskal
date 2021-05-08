@@ -2,7 +2,7 @@
 
 #include "samplesort.h"
 
-u64 bucketKruskal(DisjointSet &set, vector<Edge> &edges, vector<Edge> &outEdges, ISize begin, ISize end, int N, int &card, bool doFilter = false) {
+float bucketKruskal(DisjointSet &set, vector<Edge> &edges, vector<Edge> &outEdges, ISize begin, ISize end, int N, int &card, bool doFilter = false) {
 
 	if (doFilter) {
 		filterAll(set, edges, begin, end);
@@ -62,7 +62,7 @@ u64 bucketKruskal(DisjointSet &set, vector<Edge> &edges, vector<Edge> &outEdges,
 		cout << "prefix sums: " << bucketSizes << endl;
 	}
 
-	u64 cost = 0;
+	float cost = 0;
 
 	ISize newBegin = begin;
 	for (u32 i = 0; i < numBuckets; i++) {
@@ -89,7 +89,7 @@ u64 bucketKruskal(DisjointSet &set, vector<Edge> &edges, vector<Edge> &outEdges,
 
 }
 
-u64 bucketKruskal(vector<Edge> &edges, int N) {
+float bucketKruskal(vector<Edge> &edges, int N) {
 	int M = edges.size();
 	vector<Edge> outEdges(M);
 	DisjointSet set(N);

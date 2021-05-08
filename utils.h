@@ -17,6 +17,8 @@ typedef uint8_t u8;
 
 #define UNUSED(x) (void)(x)
 
+#define unreachable() {assert(0); abort();}
+
 bool verbose();
 
 template <typename T>
