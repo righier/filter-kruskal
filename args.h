@@ -3,6 +3,10 @@
 #include <string>
 #include <unordered_map>
 
+#include "assert.h"
+#include <cstdlib>
+#include <iostream>
+
 struct Args {
   std::unordered_map<std::string, std::string> args;
 
@@ -21,7 +25,9 @@ struct Args {
           args[argv[i - 1]] = argv[i];
           active_arg = false;
         } else {
-          // error
+          std::cout << "Unexpected argument: " << argv[i] << std::endl;
+          assert();
+          std::abort();
         }
       }
     }

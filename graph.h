@@ -10,10 +10,10 @@ struct Edge {
   int a, b;
   float w;
 
-  Edge() {}
-  Edge(int a, int b, float w) : a(a), b(b), w(w) {}
+  inline Edge() {}
+  inline Edge(int a, int b, float w) : a(a), b(b), w(w) {}
 
-  bool operator<(const Edge &other) { return w < other.w; }
+  inline bool operator<(const Edge &other) { return w < other.w; }
 };
 
 typedef std::vector<Edge> Edges;

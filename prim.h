@@ -6,7 +6,7 @@
 #include "pairingheap.h"
 #include "utils.h"
 
-float prim(const Graph &g) {
+static inline float prim(const Graph &g) {
   int N = g.size();
   const float INF = std::numeric_limits<float>::infinity();
   vector<PairingHeap> cost;
@@ -20,8 +20,8 @@ float prim(const Graph &g) {
 
   for (int j = 0; j < N; j++) {
     if (cost[j].e.first == INF) {
-      cost[0].e.first = 0;
-      PairingHeap *h = &cost[0];
+      cost[j].e.first = 0;
+      PairingHeap *h = &cost[j];
 
       while (h != NULL) {
         int node = top(h).second;

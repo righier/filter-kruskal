@@ -7,32 +7,38 @@
 #include <algorithm>
 
 // pick the first element as pivot
-int pickPivot(vector<Edge> &edges, ISize begin, ISize end) {
+static inline float pickPivot(vector<Edge> &edges, ISize begin, ISize end) {
   UNUSED(edges);
   UNUSED(end);
   return edges[begin].w;
 }
 
 // pick a random pivot
-int pickPivotRandom(vector<Edge> &edges, ISize begin, ISize end) {
+static inline float pickPivotRandom(vector<Edge> &edges, ISize begin, ISize end) {
   static Random rnd(31);
   // ISize i = rnd.getInt(begin, end);
   // swap(edges[begin], edges[end]);
   return edges[rnd.getULong(begin, end)].w;
 }
 
-ISize pickPivotRandomPos(vector<Edge> &edges, ISize begin, ISize end) {
+static inline ISize pickPivotRandomPos(vector<Edge> &edges, ISize begin, ISize end) {
   UNUSED(edges);
   static Random rnd(31);
 
   return rnd.getULong(begin, end);
 }
 
+static inline EdgeIt pickPivotRandomPos(EdgeIt begin, EdgeIt end) {
+  static Random rnd(31);
+
+  return begin + rnd.getULong(end - begin);
+}
+
 // sample only 3 elements: first, middle, last
-int pickPivotSample3(vector<Edge> &edges, ISize begin, ISize end) {
-  int a = edges[begin].w;
-  int b = edges[end - 1].w;
-  int c = edges[(begin + end) / 2].w;
+static inline EdgeIt pickPivotSample3(EdgeIt begin, EdgeIt end) {
+  EdgeIt a = begin;
+  EdgeIt b = end - 1;
+  EdgeIt c = begin + (end - begin)/2;
 
   if (a > b) swap(a, b);
   if (c < a) return a;
@@ -43,24 +49,22 @@ int pickPivotSample3(vector<Edge> &edges, ISize begin, ISize end) {
 }
 
 // sample only 3 random elements
-int pickPivotSample3Random(vector<Edge> &edges, ISize begin, ISize end) {
+static inline EdgeIt pickPivotSample3Random(EdgeIt begin, EdgeIt end) {
   static Random rnd(31);
-  int a = edges[rnd.getInt(begin, end)].w;
-  int b = edges[rnd.getInt(begin, end)].w;
-  int c = edges[rnd.getInt(begin, end)].w;
+  EdgeIt a = (begin + rnd.getInt(end - begin));
+  EdgeIt b = (begin + rnd.getInt(end - begin));
+  EdgeIt c = (begin + rnd.getInt(end - begin));
 
   if (a > b) swap(a, b);
   if (c < a) return a;
-  if (b < c)
-    return b;
-  else
-    return c;
+  if (b < c) return b;
+  else return c;
 }
 
 // sample sqrt(k) random elements
-int pickPivotSampleRootK(vector<Edge> &edges, ISize begin, ISize end) {
+static inline float pickPivotSampleRootK(vector<Edge> &edges, ISize begin, ISize end) {
   static Random rnd(31);
-  static vector<int> v;
+  static vector<float> v;
   int samples = max(int(sqrtf(end - begin)), 1);
 
   v.clear();
@@ -72,7 +76,7 @@ int pickPivotSampleRootK(vector<Edge> &edges, ISize begin, ISize end) {
   // sort(v.begin(), v.end());
   nth_element(v.begin(), v.begin() + samples / 2, v.end());
 
-  int pivot = v[samples / 2];
+  float pivot = v[samples / 2];
 
   return pivot;
 }

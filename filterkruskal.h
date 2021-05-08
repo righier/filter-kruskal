@@ -3,16 +3,54 @@
 #include "kruskal.h"
 #include "pivot.h"
 
-ISize kruskalThreshold(int N, ISize M) {
+static inline ISize kruskalThreshold(int N, ISize M) {
   UNUSED(M);
   UNUSED(N);
-  return 10;
+  return 1000;
 }
 
-bool filter(DisjointSet &set, int a, int b) { return set.compare(a, b); }
+static inline EdgeIt partition(EdgeIt first, EdgeIt last, float pivot) {
+  while (first < last) {
+    while (first < last & first->w < pivot) ++first;
+    --last;
+    while (first < last & last->w >= pivot) --last;
+    if (first < last) {
+      iter_swap(first, last);
+      ++first;
+    }
+  }
+  return last;
+}
+
+static inline EdgeIt partition2(EdgeIt first, EdgeIt last, float pivot) {
+  while (true) {
+    while (true) {
+      if (first == last) return first;
+      else if (first->w < pivot) ++first;
+      else break;
+    }
+    --last;
+    while (true) {
+      if (first == last) return first;
+      else if (last->w >= pivot) --last;
+      else break;
+    }
+    iter_swap(first, last);
+    ++first;
+  }
+}
+
+
+
+static inline EdgeIt partition3(EdgeIt first, EdgeIt last, float pivot1, float pivot2) {
+
+  return last;
+}
+
+static inline bool filter(DisjointSet &set, int a, int b) { return set.compare(a, b); }
 
 // filter edges and returns the new end index of the array
-ISize filterAll(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end) {
+static inline ISize filterAll(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end) {
   while (begin < end) {
     Edge &e = edges[begin];
     if (filter(set, e.a, e.b)) {
@@ -24,10 +62,43 @@ ISize filterAll(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end) {
   return end;
 }
 
+static inline EdgeIt filterAll(DisjointSet &set, EdgeIt begin, EdgeIt end) {
+  while (begin < end) {
+    const Edge &e = *begin;
+    if (filter(set, e.a, e.b)) {
+      *begin = *(--end);
+    } else {
+      ++begin;
+    }
+  }
+  return end;
+}
+
+static inline float filterKruskalNaive(DisjointSet &set, EdgeIt begin, EdgeIt end, int N, int &card) {
+  u64 M = end - begin;
+  if (M < kruskalThreshold(N, M)) {
+    return kruskal(set, begin, end, N, card, true);
+  }
+
+  EdgeIt pivot = pickPivotRandomPos(begin, end);
+  float pivotVal = pivot->w;
+  // iter_swap(begin, pivot);
+  // pivot = begin++;
+  // EdgeIt mid = partition(begin, end, [pivotVal](const Edge &e) {return e.w < pivotVal;});
+  EdgeIt mid = partition2(begin, end, pivotVal);
+
+  float cost = filterKruskalNaive(set, begin, mid, N, card);
+
+  if (card < N-1) {
+    // addEdgeToMst(set, *pivot, card, cost);
+    end = filterAll(set, mid, end);
+    cost += filterKruskalNaive(set, mid, end, N, card);
+  }
+  return cost;
+}
+
 // better strategy if the array has many repetitions
-pair<ISize, ISize> threeWayPartitioning(DisjointSet &set, vector<Edge> &edges,
-                                        ISize begin, ISize end, float pivotVal,
-                                        bool doFilter) {
+static inline pair<ISize, ISize> threeWayPartitioning(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, float pivotVal, bool doFilter) {
   static vector<Edge> temp;
   temp.clear();
 
@@ -52,9 +123,7 @@ pair<ISize, ISize> threeWayPartitioning(DisjointSet &set, vector<Edge> &edges,
   return make_pair(endA, beginB);
 }
 
-pair<ISize, ISize> twoWayPartitioning(DisjointSet &set, vector<Edge> &edges,
-                                      ISize begin, ISize end, float pivotVal,
-                                      bool doFilter) {
+static inline pair<ISize, ISize> twoWayPartitioning(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, float pivotVal, bool doFilter) {
   ISize endA = begin, it = begin, beginB = end;
 
   while (it < beginB) {
@@ -174,4 +243,10 @@ float filterKruskalRec2(vector<Edge> &edges, int N) {
   DisjointSet set(N);
   int card = 0;
   return filterKruskalRec2(set, edges, 0, edges.size(), N, card);
+}
+
+float filterKruskalNaive(vector<Edge> &edges, int N) {
+  DisjointSet set(N);
+  int card = 0;
+  return filterKruskalNaive(set, edges.begin(), edges.end(), N, card);
 }

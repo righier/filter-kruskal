@@ -18,7 +18,7 @@ struct Random {
 
   int getInt(int max) { return (int)(getDouble() * max); }
 
-  int getInt(int min, int max) { return getInt(max - min) + min; }
+  int getInt(int min, int max) { return min + getInt(max - min); }
 
   u64 getULong() { return next(); }
 

@@ -3,31 +3,31 @@
 #include "utils.h"
 
 struct DisjointSet {
-  vector<int> p;
-  vector<int> r;
+  vector<u32> p;
+  vector<u32> r;
 
-  DisjointSet(int N) : p(N, 0), r(N) {
-    for (int i = 0; i < N; i++) p[i] = i;
+  DisjointSet(u32 N) : p(N, 0), r(N, 0) {
+    for (u32 i = 0; i < N; i++) p[i] = i;
   }
 
   // naive
-  int find0(int x) {
+  u32 find0(u32 x) {
     if (p[x] == x) return x;
     return find(p[x]);
   }
 
   // recursive path compression
-  int find1(int x) {
+  u32 find1(u32 x) {
     if (p[x] == x) return x;
     return (p[x] = find(p[x]));
   }
 
   // iterative path compression
-  int find(int x) {
-    int root = x;
+  inline u32 find(u32 x) {
+    u32 root = x;
     while (root != p[root]) root = p[root];
     while (x != root) {
-      int temp = p[x];
+      u32 temp = p[x];
       p[x] = root;
       x = temp;
     }
@@ -35,9 +35,9 @@ struct DisjointSet {
   }
 
   // path splitting
-  int find3(int x) {
+  u32 find3(u32 x) {
     while (p[x] != x) {
-      int parent = p[x];
+      u32 parent = p[x];
       p[x] = p[p[x]];
       x = parent;
     }
@@ -45,7 +45,7 @@ struct DisjointSet {
   }
 
   // path halving
-  int find4(int x) {
+  u32 find4(u32 x) {
     while (p[x] != x) {
       p[x] = p[p[x]];
       x = p[x];
@@ -53,9 +53,9 @@ struct DisjointSet {
     return x;
   }
 
-  bool compare(int a, int b) {
-    int pa = p[a];
-    int pb = p[b];
+  bool compare(u32 a, u32 b) {
+    u32 pa = p[a];
+    u32 pb = p[b];
     if (pa == pb) return true;
     p[a] = pa = find(pa);
     p[b] = pb = find(pb);
@@ -63,22 +63,11 @@ struct DisjointSet {
   }
 
   // union by rank
-  void merge(int a, int b) {
-    int pa = find(a);
-    int pb = find(b);
-    if (r[pa] < r[pb])
-      swap(pa, pb);
-    else if (r[pa] == r[pb])
-      r[pa]++;
-    p[pb] = pa;
-  }
-
-  // union by rank
-  bool checkMerge(int a, int b) {
-    assert((u64)a < p.size());
-    assert((u64)b < p.size());
-    int pa = p[a];
-    int pb = p[b];
+  bool checkMerge(u32 a, u32 b) {
+    assert(a < p.size());
+    assert(b < p.size());
+    u32 pa = p[a];
+    u32 pb = p[b];
     if (pa == pb) return false;
     p[a] = pa = find(pa);
     p[b] = pb = find(pb);
@@ -91,4 +80,5 @@ struct DisjointSet {
     p[pb] = pa;
     return true;
   }
+
 };

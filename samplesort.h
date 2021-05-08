@@ -25,7 +25,7 @@ void sample(vector<Edge> &edges, ISize begin, ISize end, ISize sampleSize) {
   }
 }
 
-// this need to be called with pos == 1
+// this needs to be called with pos == 1
 // this works if beginSamples + endSamples doesn't overflow
 // AND if edges.size() >= (sampleSize + numPivots);
 void buildTree(vector<Edge> &edges, ISize beginEdges, ISize beginSamples,

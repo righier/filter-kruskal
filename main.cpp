@@ -20,9 +20,10 @@ bool verbose() { return isVerbose; }
 int main(int argc, char **argv) {
   Args args(argc, argv);
 
-  int N = args.getInt("-n", 20000);
-  int M = args.getInt("-m", 10000000);
-  string S = args.getString("-s", "kruskal");
+  int N = args.getInt("-n", 10);
+  int M = args.getInt("-m", 10);
+  int T = args.getInt("-t", 10);
+  string S = args.getString("-s", "prim");
   string G = args.getString("-g", "randgraph");
   isVerbose = args.getBool("-v");
 
@@ -33,7 +34,7 @@ int main(int argc, char **argv) {
   Timer<> timer;
   Timer<> genTimer;
 
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < T; i++) {
     Graph graph;
     vector<Edge> edges;
 
@@ -68,6 +69,8 @@ int main(int argc, char **argv) {
 
     if (S == "kruskal") {
       cost = kruskal(edges, N);
+    } else if (S == "filterkruskalnaive") {
+      cost = filterKruskalNaive(edges, N);
     } else if (S == "filterkruskal") {
       cost = filterKruskal(edges, N);
     } else if (S == "filterkruskalrec") {
@@ -87,8 +90,7 @@ int main(int argc, char **argv) {
 
     double delta = timer.delta();
 
-    cout << "cost: " << cost << " , time: " << 1000 * delta
-         << ", gen+solve time: " << 1000 * (delta + genDelta) << endl;
+    cout << "cost: " << cost << " , time: " << 1000 * delta << ", gen+solve time: " << 1000 * (delta + genDelta) << endl;
   }
 
   cout << "average time: " << 1000 * timer.avg() << endl;
