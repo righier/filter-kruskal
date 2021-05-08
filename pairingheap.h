@@ -4,19 +4,19 @@
 
 struct PairingHeap {
 
-	pair<int,int> e;
+	pair<float,int> e;
 	PairingHeap *child = NULL;
 	PairingHeap *next = NULL;
 	PairingHeap *prev = NULL;
 
-	PairingHeap(int val, int data) {
+	PairingHeap(float val, int data) {
 		e.first = val;
 		e.second = data;
 	}
 
 };
 
-pair<int,int> top(PairingHeap *h) {
+pair<float,int> top(PairingHeap *h) {
 	assert(h != NULL);
 	return h->e;
 }
@@ -47,7 +47,7 @@ PairingHeap *pop(PairingHeap *h) {
 	return out;
 }
 
-PairingHeap *decreaseKey(PairingHeap *h, PairingHeap *p, int val) {
+PairingHeap *decreaseKey(PairingHeap *h, PairingHeap *p, float val) {
 	assert(p != NULL);
 	if (p->e.first <= val) return h;
 

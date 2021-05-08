@@ -1,23 +1,25 @@
-#include <stdint.h>
+#pragma once
 
+#include <stdint.h>
+#include "utils.h"
 
 struct Random {
-
-	Random(uint64_t seed) {
+	
+	Random(u64 seed) {
 		s[0] = init(seed);
 		s[1] = init(seed);
 	}
 
-	uint64_t getUint64() {
+	u64 getUint64() {
 		return next();
 	}
 
 	double getDouble() {
-		return (next() >> 11) * (1.0 / (uint64_t(1) << 53));
+		return (next() >> 11) * (1.0 / (u64(1) << 53));
 	}
 
 	float getFloat() {
-		return (next() >> 40) * (1.0f / (uint32_t(1) << 24));
+		return (next() >> 40) * (1.0f / (u32(1) << 24));
 	}
 
 	int getInt(int max) {
@@ -28,42 +30,60 @@ struct Random {
 		return getInt(max - min) + min;
 	}
 
-	uint64_t getULong() {
+	u64 getULong() {
 		return next();
 	}
 
-	uint64_t getULong(uint64_t max) {
+	u64 getULong(u64 max) {
 		return next() % max;
 	}
 
-	uint64_t getULong(uint64_t min, uint64_t max) {
+	u64 getULong(u64 min, u64 max) {
 		return min + getULong(max - min);
 	}
 
 private:
 
-	uint64_t s[2];
+	u64 s[2];
 
-	uint64_t init(uint64_t &x) {
-		uint64_t z = (x += 0x9e3779b97f4a7c15);
-		z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
-		z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
+
+    /*  Written in 2015 by Sebastiano Vigna (vigna@acm.org)
+
+    To the extent possible under law, the author has dedicated all copyright
+    and related and neighboring rights to this software to the public domain
+    worldwide. This software is distributed without any warranty.
+
+    See <http://creativecommons.org/publicdomain/zero/1.0/>. */
+
+	u64 init(u64 &x) {
+		u64 z = (x += 0x9e3779b97f4a7c15ULL);
+		z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ULL;
+		z = (z ^ (z >> 27)) * 0x94d049bb133111ebULL;
 		return z ^ (z >> 31);
 	}
 
-	static inline uint64_t rotl(const uint64_t x, int k) {
+    /*  Written in 2016-2018 by David Blackman and Sebastiano Vigna (vigna@acm.org)
+
+    To the extent possible under law, the author has dedicated all copyright
+    and related and neighboring rights to this software to the public domain
+    worldwide. This software is distributed without any warranty.
+
+    See <http://creativecommons.org/publicdomain/zero/1.0/>. */
+
+	static inline u64 rotl(const u64 x, int k) {
 		return (x << k) | (x >> (64 - k));
 	}
 
-	uint64_t next(void) {
-		const uint64_t s0 = s[0];
-		uint64_t s1 = s[1];
+	u64 next(void) {
+		const u64 s0 = s[0];
+		u64 s1 = s[1];
+        const u64 result = s0 + s1;
 
 		s1 ^= s0;
 		s[0] = rotl(s0, 24) ^ s1 ^ (s1 << 16);
 		s[1] = rotl(s1, 37);
 
-		return s0 + s1;
+        return result;
 	}
 
 };

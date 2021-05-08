@@ -27,7 +27,7 @@ ISize filterAll(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end) {
 }
 
 // better strategy if the array has many repetitions
-pair<ISize, ISize> threeWayPartitioning(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int pivotVal, bool doFilter) {
+pair<ISize, ISize> threeWayPartitioning(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, float pivotVal, bool doFilter) {
 	static vector<Edge> temp;
 	temp.clear();
 
@@ -49,25 +49,24 @@ pair<ISize, ISize> threeWayPartitioning(DisjointSet &set, vector<Edge> &edges, I
 	return make_pair(endA, beginB);
 }
 
-pair<ISize, ISize> twoWayPartitioning(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int pivotVal, bool doFilter) {
+pair<ISize, ISize> twoWayPartitioning(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, float pivotVal, bool doFilter) {
 	ISize endA = begin, it = begin, beginB = end;
 
 	while (it < beginB) {
-		if (doFilter && filter(set, e.a, e.b)) {
-			
-		}
+		Edge &e = edges[it];
 
-		if (edges[begin].w > pivotVal) {
-			std::swap(edges[begin], edges[--end]);
+		if (doFilter && filter(set, e.a, e.b)) {
+			++it;
 		} else {
-			++begin;
+			if (e.w <= pivotVal) edges[endA++] = edges[it++];
+			else swap(edges[it], edges[--beginB]);
 		}
 	}
 
-	return end;
+	return make_pair(endA, beginB);
 }
 
-u64 filterKruskalRec(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int N, int &card, bool doFilter = false) {
+float filterKruskalRec(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int N, int &card, bool doFilter = false) {
 	ISize M = end - begin;
 
 	if (M <= kruskalThreshold(N, M)) {
@@ -75,44 +74,25 @@ u64 filterKruskalRec(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize e
 	}
 
 	ISize pivot = pickPivotRandomPos(edges, begin, end);
-	int pivotVal = edges[pivot].w;
+	float pivotVal = edges[pivot].w;
 	std::swap(edges[begin], edges[pivot]);
 	++begin;
 
-	ISize beginB = twoWayPartitioning(set, edges, begin, end, pivotVal, doFilter);
-
-	u64 cost = filterKruskalRec(set, edges, begin, beginB, N, card, false);
-
-	if (card < N-1) {
-		u64 cost = filterKruskalRec(set, edges, begin, beginB, N, card, false);
-	}
-}
-
-/*
-u64 filterKruskalRec(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int N, int &card, bool doFilter = false) {
-	ISize M = end - begin;
-
-	if (M <= kruskalThreshold(N, M)) {
-		return kruskal(set, edges, begin, end, N, card, true);
-	}
-
-	int pivotVal = pickPivotRandom(edges, begin, end);
 	ISize endA, beginB;
-	tie(endA, beginB) = threeWayPartitioning(set, edges, begin, end, pivotVal, doFilter);
+	tie(endA, beginB) = twoWayPartitioning(set, edges, begin, end, pivotVal, doFilter);
 
-	u64 cost = filterKruskalRec(set, edges, begin, endA, N, card);
+	float cost = filterKruskalRec(set, edges, begin, endA, N, card, false);
+
 	if (card < N-1) {
-		cost += kruskal(set, edges, endA, beginB, N, card, false);
-		if (card < N-1) {
-			cost += filterKruskalRec(set, edges, beginB, end, N, card, true);
-		}
+		cost += kruskal(set, edges, begin-1, begin, N, card, false);
+		cost += filterKruskalRec(set, edges, beginB, end, N, card, false);
 	}
 
 	return cost;
 }
-*/
 
-u64 filterKruskalRec2(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int N, int &card, bool doFilter = false) {
+
+float filterKruskalRec2(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end, int N, int &card, bool doFilter = false) {
 	ISize M = end - begin;
 
 	if (M <= kruskalThreshold(N, M)) {
@@ -124,7 +104,7 @@ u64 filterKruskalRec2(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize 
 	tie(endA, beginB) = threeWayPartitioning(set, edges, begin, end, pivotVal, doFilter);
 
 	int oldCard = card;
-	u64 cost = filterKruskalRec2(set, edges, begin, endA, N, card, false);
+	float cost = filterKruskalRec2(set, edges, begin, endA, N, card, false);
 	if (card < N-1) {
 		cost += kruskal(set, edges, endA, beginB, N, card, false);
 		if (card < N-1) {
@@ -139,12 +119,12 @@ u64 filterKruskalRec2(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize 
 	return cost;
 }
 
-u64 filterKruskal(vector<Edge> &edges, int N) {
+float filterKruskal(vector<Edge> &edges, int N) {
 	stack<pair<ISize, ISize>> ranges;
 	DisjointSet set(N);
 
 	int card = 0;
-	u64 cost = 0;
+	float cost = 0;
 
 	ISize begin = 0;
 	ISize end = edges.size();
@@ -173,13 +153,13 @@ u64 filterKruskal(vector<Edge> &edges, int N) {
 	return cost;
 }
 
-u64 filterKruskalRec(vector<Edge> &edges, int N) {
+float filterKruskalRec(vector<Edge> &edges, int N) {
 	DisjointSet set(N);
 	int card = 0;
 	return filterKruskalRec(set, edges, 0, edges.size(), N, card);
 }
 
-u64 filterKruskalRec2(vector<Edge> &edges, int N) {
+float filterKruskalRec2(vector<Edge> &edges, int N) {
 	DisjointSet set(N);
 	int card = 0;
 	return filterKruskalRec2(set, edges, 0, edges.size(), N, card);

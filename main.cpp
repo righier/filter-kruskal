@@ -1,6 +1,8 @@
 #include <stack>
 
 #include "utils.h"
+#include "graph.h"
+#include "randomgraphs.h"
 #include "args.h"
 #include "timer.h"
 
@@ -21,7 +23,8 @@ int main(int argc, char **argv) {
 
 	int N = args.getInt("-n", 20000);
 	int M = args.getInt("-m", 10000000);
-	string S = args.getString("-s", "filterkruskalrec2");
+	string S = args.getString("-s", "kruskal");
+	string G = args.getString("-g", "randomweights");
 	isVerbose = args.getBool("-v");
 
 	Random rnd(31);
@@ -29,6 +32,7 @@ int main(int argc, char **argv) {
 	cout << N << " " << M << endl;
 
 	Timer<> timer;
+	Timer<> genTimer;
 
 	for (int i = 0; i < 10; i++) {
 
@@ -36,20 +40,27 @@ int main(int argc, char **argv) {
 		BetterGraph bgraph;
 		vector<Edge> edges;
 
-		if (S == "prim") {
-			graph = randomGraph(rnd, N, M);
-		} else if (S == "prim2") {
-			bgraph = randomBetterGraph(rnd, N, M);
-		} else {
-			edges = randomEdges(rnd, N-1, M);
-			edges.push_back(Edge(0, N-1, INT_MAX));
+		genTimer.start();
 
-			if (false && verbose()) {
-				for (Edge e: edges) {
-					cout << "(" << e.a << ") -- (" << e.b << "): " << e.w << endl;
-				}
+		if (G == "randomweights") {
+			edges = randomGraph(rnd, N, M, 1.0f);
+		} else {
+			cout << "ERROR" << endl;
+			assert(false);
+		}
+
+		if (false && verbose()) {
+			for (Edge e : edges) {
+				cout << "(" << e.a << ") -- (" << e.b << "): " << e.w << endl;
 			}
 		}
+
+		if (S == "prim") {
+			graph = edgesToGraph(edges);
+		}
+
+		double genDelta = genTimer.delta();
+
 
 		timer.start();
 
@@ -75,10 +86,11 @@ int main(int argc, char **argv) {
 
 		double delta = timer.delta();
 
-		cout << "cost: " << cost << " , time: " << 1000 * delta << endl;
+		cout << "cost: " << cost << " , time: " << 1000 * delta << ", gen+solve time: " << 1000 * (delta + genDelta) << endl;
 	}
 
 	cout << "average time: " << 1000 * timer.avg() << endl;
+	cout << "gen+solve average time: " << 1000 * (timer.avg() + genTimer.avg()) << endl;
 
 	return 0;
 }
