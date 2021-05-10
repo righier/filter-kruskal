@@ -1,0 +1,43 @@
+\begin{thebibliography}{1}
+
+\bibitem{prim}
+Robert~Clay Prim.
+\newblock Shortest connection networks and some generalizations.
+\newblock {\em The Bell System Technical Journal}, 36(6):1389--1401, 1957.
+
+\bibitem{kruskal}
+Joseph~B Kruskal.
+\newblock On the shortest spanning subtree of a graph and the traveling
+  salesman problem.
+\newblock {\em Proceedings of the American Mathematical society}, 7(1):48--50,
+  1956.
+
+\bibitem{incremental}
+Rodrigo Paredes and Gonzalo Navarro.
+\newblock Optimal incremental sorting.
+\newblock In {\em 2006 Proceedings of the Eighth Workshop on Algorithm
+  Engineering and Experiments (ALENEX)}, pages 171--182. SIAM, 2006.
+
+\bibitem{filterkruskal}
+Vitaly Osipov, Peter Sanders, and Johannes Singler.
+\newblock The filter-kruskal minimum spanning tree algorithm.
+\newblock In {\em 2009 Proceedings of the Eleventh Workshop on Algorithm
+  Engineering and Experiments (ALENEX)}, pages 52--61. SIAM, 2009.
+
+\bibitem{pairing}
+Michael~L Fredman, Robert Sedgewick, Daniel~D Sleator, and Robert~E Tarjan.
+\newblock The pairing heap: A new form of self-adjusting heap.
+\newblock {\em Algorithmica}, 1(1-4):111--129, 1986.
+
+\bibitem{samplesort}
+Peter Sanders and Sebastian Winkel.
+\newblock Super scalar sample sort.
+\newblock In {\em European Symposium on Algorithms}, pages 784--796. Springer,
+  2004.
+
+\bibitem{dualpivot}
+Vladimir Yaroslavskiy.
+\newblock Dual-pivot quicksort.
+\newblock {\em Research Disclosure}, 2009.
+
+\end{thebibliography}

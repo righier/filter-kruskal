@@ -11,6 +11,7 @@
 #include "bucketkruskal.h"
 #include "randomgraphs.h"
 #include "samplesort.h"
+#include "superkruskal.h"
 #include "timer.h"
 
 bool isVerbose = false;
@@ -20,16 +21,17 @@ bool verbose() { return isVerbose; }
 int main(int argc, char **argv) {
   Args args(argc, argv);
 
-  int N = args.getInt("-n", 10);
-  int M = args.getInt("-m", 10);
+  int N = args.getInt("-n", 10000);
+  int M = args.getInt("-m", 1000000);
   int T = args.getInt("-t", 10);
-  string S = args.getString("-s", "prim");
+  string S = args.getString("-s", "superkruskal");
   string G = args.getString("-g", "randgraph");
+  float skew = args.getFloat("--skew", 0.5f);
   isVerbose = args.getBool("-v");
 
   Random rnd(31);
 
-  cout << N << " " << M << endl;
+  // cout << N << " " << M << endl;
 
   Timer<> timer;
   Timer<> genTimer;
@@ -71,6 +73,12 @@ int main(int argc, char **argv) {
       cost = kruskal(edges, N);
     } else if (S == "filterkruskalnaive") {
       cost = filterKruskalNaive(edges, N);
+    } else if (S == "filterkruskalskewed") {
+      cost = filterKruskalSkewed(edges, N, skew);
+    } else if (S == "filterkruskalnaive2") {
+      cost = filterKruskalNaive2(edges, N);
+    } else if (S == "filterkruskalcopy") {
+      cost = filterKruskalCopy(edges, N);
     } else if (S == "filterkruskal") {
       cost = filterKruskal(edges, N);
     } else if (S == "filterkruskalrec") {
@@ -81,6 +89,8 @@ int main(int argc, char **argv) {
       cost = sampleKruskal(edges, N);
     } else if (S == "bucketkruskal") {
       cost = bucketKruskal(edges, N);
+    } else if (S == "superkruskal") {
+      cost = superKruskal(edges, N);
     } else if (S == "prim") {
       cost = prim(graph);
     } else {
@@ -90,12 +100,11 @@ int main(int argc, char **argv) {
 
     double delta = timer.delta();
 
-    cout << "cost: " << cost << " , time: " << 1000 * delta << ", gen+solve time: " << 1000 * (delta + genDelta) << endl;
+    // cout << "cost: " << cost << " , time: " << 1000 * delta << ", gen+solve time: " << 1000 * (delta + genDelta) << endl;
   }
 
-  cout << "average time: " << 1000 * timer.avg() << endl;
-  cout << "gen+solve average time: " << 1000 * (timer.avg() + genTimer.avg())
-       << endl;
+  cout << S << " " << N << " " << M << " " << 1000 * timer.avg() << endl;
+  // cout << "gen+solve average time: " << 1000 * (timer.avg() + genTimer.avg()) << endl;
 
   return 0;
 }

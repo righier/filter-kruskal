@@ -9,6 +9,19 @@ static inline ISize kruskalThreshold(int N, ISize M) {
   return 1000;
 }
 
+static inline EdgeIt partitionCopy(EdgeIt afirst, EdgeIt alast, EdgeIt bfirst, EdgeIt blast, float pivot) {
+  for (EdgeIt it = afirst; it < alast; it++) {
+    if (it->w < pivot) {
+      *bfirst = *it;
+      ++bfirst;
+    } else {
+      *blast = *it;
+      --blast;
+    }
+  }
+  return blast;
+}
+
 static inline EdgeIt partition(EdgeIt first, EdgeIt last, float pivot) {
   while (first < last) {
     while (first < last & first->w < pivot) ++first;
@@ -40,11 +53,67 @@ static inline EdgeIt partition2(EdgeIt first, EdgeIt last, float pivot) {
   }
 }
 
+static inline ISize partition2(Edges &edges, ISize first, ISize last, float pivot) {
+  while (true) {
+    while (true) {
+      if (first == last) return first;
+      else if (edges[first].w < pivot) ++first;
+      else break;
+    }
+    --last;
+    while (true) {
+      if (first == last) return first;
+      else if (edges[last].w >= pivot) --last;
+      else break;
+    }
+    swap(edges[first], edges[last]);
+    ++first;
+  }
+}
 
+static inline pair<EdgeIt, EdgeIt> partitionTwoPivot(EdgeIt first, EdgeIt last, float p, float q) {
+  if (q < p) swap(p, q);
+  EdgeIt l=first, k=first, g=last-1;
+  while (k <= g) {
+    if (k->w < p) {
+      iter_swap(k, l++);
+    } else if (k->w > q) {
+      if (g->w < p) {
+        Edge temp = *g;
+        *g-- = *k;
+        *k = *l;
+        *l++ = temp;
+      } else {
+        iter_swap(k, g--);
+      }
+    }
+    ++k;
+  }
+  return make_pair(l, k);
+}
 
-static inline EdgeIt partition3(EdgeIt first, EdgeIt last, float pivot1, float pivot2) {
+static inline pair<EdgeIt, EdgeIt> partition3(EdgeIt first, EdgeIt last, float p, float q) {
+  if (p > q) swap(p, q);
 
-  return last;
+  EdgeIt l=first, k=first, g=last-1;
+
+  while (k <= g) {
+    if (k->w < p) {
+      iter_swap(k, l);
+      ++l;
+    } else if (k->w >= q) {
+      while (g->w > q & k < g) --g;
+      iter_swap(k, g);
+      --g;
+      if (k->w < p) {
+        iter_swap(k, l);
+        ++l;
+      }
+    }
+    ++k;
+  }
+
+  return make_pair(l, g);
 }
 
 static inline bool filter(DisjointSet &set, int a, int b) { return set.compare(a, b); }
@@ -62,7 +131,8 @@ static inline ISize filterAll(DisjointSet &set, vector<Edge> &edges, ISize begin
   return end;
 }
 
-static inline EdgeIt filterAll(DisjointSet &set, EdgeIt begin, EdgeIt end) {
+template <typename Iter>
+static inline Iter filterAll(DisjointSet &set, Iter begin, Iter end) {
   while (begin < end) {
     const Edge &e = *begin;
     if (filter(set, e.a, e.b)) {
@@ -74,16 +144,78 @@ static inline EdgeIt filterAll(DisjointSet &set, EdgeIt begin, EdgeIt end) {
   return end;
 }
 
-static inline float filterKruskalNaive(DisjointSet &set, EdgeIt begin, EdgeIt end, int N, int &card) {
-  u64 M = end - begin;
+static inline float filterKruskalCopy(DisjointSet &set, EdgeIt afirst, EdgeIt alast, EdgeIt bfirst, EdgeIt blast, int N, int &card) {
+  ISize M = alast - afirst;
   if (M < kruskalThreshold(N, M)) {
+    return kruskal(set, afirst, alast, N, card, true);
+  }
+
+  EdgeIt pivot = pickPivotRandomPos(afirst, alast);
+  float pivotVal = pivot->w;
+
+  EdgeIt bmid = partitionCopy(afirst, alast, bfirst, blast, pivotVal);
+  EdgeIt amid = afirst + (bmid - bfirst);
+
+  float cost = filterKruskalCopy(set, bfirst, bmid, afirst, amid, N, card);
+  if (card < N-1) {
+    blast = filterAll(set, bmid, blast);
+    cost += filterKruskalCopy(set, bmid, blast, amid, alast, N, card);
+  }
+  return cost;
+}
+
+static inline float filterKruskalNaive2(DisjointSet &set, EdgeIt begin, EdgeIt end, int N, int &card) {
+  u64 M = end - begin;
+  if (M < 1000) {
     return kruskal(set, begin, end, N, card, true);
   }
 
-  EdgeIt pivot = pickPivotRandomPos(begin, end);
-  float pivotVal = pivot->w;
-  // iter_swap(begin, pivot);
-  // pivot = begin++;
+  auto psize = (end - begin)/3;
+  EdgeIt p = begin + psize;
+  EdgeIt q = begin + 2*psize;
+  float pval = p->w, qval = q->w;
+  // iter_swap(begin++, p);
+  // iter_swap(begin++, q);
+
+  // EdgeIt pivot = pickPivotRandomPos(begin, end);
+  // float pivotVal = pivot->w;
+  // EdgeIt mid = partition(begin, end, [pivotVal](const Edge &e) {return e.w < pivotVal;});
+  // EdgeIt mid = partition2(begin, end, pivotVal);
+
+  EdgeIt endA, beginC;
+  tie(endA, beginC) = partitionTwoPivot(begin, end, pval, qval);
+
+  assert(pval <= endA->w && qval >= endA->w);
+  assert(pval <= beginC->w && qval >= beginC->w);
+  assert(pval > (endA-1)->w);
+  assert(qval < (beginC+1)->w);
+
+  ++beginC;
+
+  float cost = filterKruskalNaive2(set, begin, endA, N, card);
+
+  if (card < N-1) {
+    // addEdgeToMst(set, *pivot, card, cost);
+    EdgeIt endB = filterAll(set, endA, beginC);
+    cost += filterKruskalNaive2(set, endA, endB, N, card);
+
+    if (card < N-1) {
+      end = filterAll(set, beginC, end);
+      cost += filterKruskalNaive2(set, beginC, end, N, card);
+    }
+  }
+  return cost;
+}
+
+#if 1
+
+static inline float filterKruskalNaive(DisjointSet &set, EdgeIt begin, EdgeIt end, int N, int &card) {
+  u64 M = end - begin;
+  if (M < 500) {
+    return kruskal(set, begin, end, N, card, true);
+  }
+
+  float pivotVal = pickPivotRandom(begin, end);
   // EdgeIt mid = partition(begin, end, [pivotVal](const Edge &e) {return e.w < pivotVal;});
   EdgeIt mid = partition2(begin, end, pivotVal);
 
@@ -93,6 +225,77 @@ static inline float filterKruskalNaive(DisjointSet &set, EdgeIt begin, EdgeIt en
     // addEdgeToMst(set, *pivot, card, cost);
     end = filterAll(set, mid, end);
     cost += filterKruskalNaive(set, mid, end, N, card);
+  }
+  return cost;
+}
+
+#else
+
+static inline float filterKruskalNaive(DisjointSet &set, EdgeIt begin, EdgeIt end, int N, int &card) {
+  u64 M = end - begin;
+  if (M < kruskalThreshold(N, M)) {
+    return kruskal(set, begin, end, N, card, true);
+  }
+
+  auto psize = (end - begin)/3;
+  EdgeIt p = begin + psize;
+  EdgeIt q = begin + 2*psize;
+  float pval = p->w, qval = q->w;
+  // EdgeIt pivot = pickPivotRandomPos(begin, end);
+  // float pivotVal = pivot->w;
+  // EdgeIt mid = partition(begin, end, [pivotVal](const Edge &e) {return e.w < pivotVal;});
+  // EdgeIt mid = partition2(begin, end, pivotVal);
+
+  EdgeIt endA, beginC;
+  tie(endA, beginC) = partition3(begin, end, p->w, p->w);
+
+  assert(pval <= endA->w && qval >= endA->w);
+  assert(pval <= beginC->w && qval >= beginC->w);
+  assert(pval > (endA-1)->w);
+  assert(qval < (beginC+1)->w);
+
+  ++beginC;
+
+  float cost = filterKruskalNaive(set, begin, endA, N, card);
+
+  if (card < N-1) {
+    // addEdgeToMst(set, *pivot, card, cost);
+    EdgeIt endB = filterAll(set, endA, beginC);
+    cost += filterKruskalNaive(set, endA, endB, N, card);
+
+    if (card < N-1) {
+      end = filterAll(set, beginC, end);
+      cost += filterKruskalNaive(set, beginC, end, N, card);
+    }
+  }
+  return cost;
+}
+
+#endif
+
+template<typename SampleIt>
+static inline float filterKruskalSkewed(DisjointSet &set, EdgeIt begin, EdgeIt end, SampleIt sample_begin, SampleIt sample_end, int N, int &card, bool first_iter=true) {
+  ISize M = (end - begin);
+  if (M < 500) {
+    return kruskal(set, begin, end, N, card, true);
+  }
+
+  if (sample_begin == sample_end) {
+    return filterKruskalNaive(set, begin, end, N, card);
+  }
+
+  ISize sample_size = sample_end - sample_begin;
+  SampleIt pivot;
+  if (first_iter) pivot = sample_begin + sample_size * std::min(0.5f, (float(N) * log2f(N) * 1.01f) / float(M));
+  else pivot = sample_begin + sample_size/2;
+
+  float pivotVal = *pivot;
+  EdgeIt mid = partition2(begin, end, pivotVal);
+
+  float cost = filterKruskalSkewed(set, begin, mid, sample_begin, pivot, N, card, false);
+  if (card < N-1) {
+    end = filterAll(set, mid, end);
+    cost += filterKruskalSkewed(set, mid, end, pivot+1, sample_end, N, card, false);
   }
   return cost;
 }
@@ -249,4 +452,24 @@ float filterKruskalNaive(vector<Edge> &edges, int N) {
   DisjointSet set(N);
   int card = 0;
   return filterKruskalNaive(set, edges.begin(), edges.end(), N, card);
+}
+
+float filterKruskalNaive2(vector<Edge> &edges, int N) {
+  DisjointSet set(N);
+  int card = 0;
+  return filterKruskalNaive2(set, edges.begin(), edges.end(), N, card);
+}
+
+float filterKruskalCopy(vector<Edge> &edges, int N) {
+  DisjointSet set(N);
+  Edges out(edges.size());
+  int card = 0;
+  return filterKruskalCopy(set, edges.begin(), edges.end(), out.begin(), out.end(), N, card);
+}
+
+float filterKruskalSkewed(vector<Edge> &edges, int N, float skew=0.5f) {
+  DisjointSet set(N);
+  auto samples = pickSamplesRootK(edges.begin(), edges.end());
+  int card = 0;
+  return filterKruskalSkewed(set, edges.begin(), edges.end(), samples.begin(), samples.end(), N, card, true);
 }

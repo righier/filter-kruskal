@@ -31,9 +31,6 @@ class kdTree {
     std::string indent = "";
     for (int i = 0; i < depth; i++) indent += "  ";
 
-    // std::cout << indent << "box: " << minp << "--" << maxp << "  node: " <<
-    // pos << std::endl;
-
     if (mid - begin > 0) {
       this->left = new kdTree(realBegin, begin, mid, !dim, depth + 1);
     }
@@ -68,9 +65,6 @@ class kdTree {
   std::vector<QueryResult> closestK(const Pos &p, int id, int k) {
     std::priority_queue<QueryResult> best;
     best.emplace(QueryResult(std::numeric_limits<float>::infinity(), this));
-
-    // std::cout << "closest to: " << id << " " << p << " K: " << k <<
-    // std::endl;
 
     closestK(p, id, k, best);
 

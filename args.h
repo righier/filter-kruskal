@@ -26,7 +26,7 @@ struct Args {
           active_arg = false;
         } else {
           std::cout << "Unexpected argument: " << argv[i] << std::endl;
-          assert();
+          assert(0);
           std::abort();
         }
       }
@@ -47,6 +47,14 @@ struct Args {
       return defaultValue;
     else
       return std::stoi(elem->second);
+  }
+
+  float getFloat(const std::string &name, float defaultValue) {
+    const auto &elem = args.find(name);
+    if (elem == args.end())
+      return defaultValue;
+    else
+      return std::stof(elem->second);
   }
 
   double getDouble(const std::string &name, double defaultValue) {

@@ -124,11 +124,8 @@ static Edges randomGraph(Random &rnd, int n, i64 m, float maxw = 1.0f) {
   i64 maxm = i64(n) * (i64(n) - 1) / 2;
   if (m > maxm) m = maxm;
 
-  double ilogp =
-      1.0 /
-      std::log(1.0 -
-               double(m) / double(maxm));  // inverse logarithm of the
-                                           // probability of not picking an edge
+  // inverse logarithm of the probability of not picking an edge
+  double ilogp = 1.0 / std::log(1.0 - double(m) / double(maxm));  
   int a = 0, b = 0;
 
   Edges edges;

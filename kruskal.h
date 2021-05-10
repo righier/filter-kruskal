@@ -18,10 +18,11 @@ static inline bool addEdgeToMst(DisjointSet &set, const Edge &e, int &card, floa
   }
 }
 
-static inline float kruskal(DisjointSet &set, EdgeIt begin, EdgeIt end, int N, int &card, bool doSort = true) {
+template <typename Iter>
+static inline float kruskal(DisjointSet &set, Iter begin, Iter end, int N, int &card, bool doSort = true) {
   if (doSort) sort(begin, end);
   float cost = 0;
-  for (EdgeIt it = begin; it < end; it++) {
+  for (Iter it = begin; it < end; it++) {
     if (addEdgeToMst(set, *it, card, cost) && card == N - 1) {
       break;
     }

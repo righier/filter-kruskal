@@ -13,7 +13,8 @@ struct Edge {
   inline Edge() {}
   inline Edge(int a, int b, float w) : a(a), b(b), w(w) {}
 
-  inline bool operator<(const Edge &other) { return w < other.w; }
+  bool operator<(const Edge &other) const { return w < other.w; }
+  bool operator==(const Edge &other) const { return w == other.w; }
 };
 
 typedef std::vector<Edge> Edges;

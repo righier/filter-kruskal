@@ -26,11 +26,10 @@ void sample(vector<Edge> &edges, ISize begin, ISize end, ISize sampleSize) {
 }
 
 // this needs to be called with pos == 1
-// this works if beginSamples + endSamples doesn't overflow
 // AND if edges.size() >= (sampleSize + numPivots);
 void buildTree(vector<Edge> &edges, ISize beginEdges, ISize beginSamples,
                ISize endSamples, vector<int> &pivots, u32 pos) {
-  ISize mid = (beginSamples + endSamples) / 2;
+  ISize mid = beginSamples + (endSamples - beginSamples) / 2;
   pivots[pos] = edges[mid].w;
   // swap(edges[mid], edges[beginEdges]);
   if (2 * pos < numPivots) {
@@ -91,7 +90,7 @@ void distribute(vector<Edge> &edges, vector<Edge> &outEdges, ISize begin,
   }
 }
 
-u64 sampleKruskal(DisjointSet &set, vector<Edge> &edges, vector<Edge> &outEdges,
+float sampleKruskal(DisjointSet &set, vector<Edge> &edges, vector<Edge> &outEdges,
                   ISize begin, ISize end, int N, vector<u8> &bucketIds,
                   int &card) {
   static vector<int> pivots(numPivots);
@@ -111,7 +110,7 @@ u64 sampleKruskal(DisjointSet &set, vector<Edge> &edges, vector<Edge> &outEdges,
   prefixSum(bucketSizes, begin);
   distribute(edges, outEdges, begin, end, bucketSizes, bucketIds);
 
-  u64 cost = 0;
+  float cost = 0;
 
   ISize newBegin = begin;
   for (u32 i = 0; i < numBuckets; i++) {
@@ -119,8 +118,8 @@ u64 sampleKruskal(DisjointSet &set, vector<Edge> &edges, vector<Edge> &outEdges,
     if (i > 0) {
       newEnd = filterAll(set, outEdges, newBegin, newEnd);
     }
-    cost += sampleKruskal(set, outEdges, edges, newBegin, newEnd, N, bucketIds,
-                          card);
+    cost += filterKruskalNaive(set, outEdges.begin()+newBegin, outEdges.begin()+newEnd, N, card);
+    // cost += sampleKruskal(set, outEdges, edges, newBegin, newEnd, N, bucketIds, card);
     newBegin = newEnd;
 
     if (card >= N - 1) {
@@ -131,7 +130,7 @@ u64 sampleKruskal(DisjointSet &set, vector<Edge> &edges, vector<Edge> &outEdges,
   return cost;
 }
 
-u64 sampleKruskal(vector<Edge> &edges, int N) {
+float sampleKruskal(vector<Edge> &edges, int N) {
   int M = edges.size();
   vector<Edge> outEdges(M);
   vector<u8> bucketIds(M);

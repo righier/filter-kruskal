@@ -30,8 +30,12 @@ static inline ISize pickPivotRandomPos(vector<Edge> &edges, ISize begin, ISize e
 
 static inline EdgeIt pickPivotRandomPos(EdgeIt begin, EdgeIt end) {
   static Random rnd(31);
-
   return begin + rnd.getULong(end - begin);
+}
+
+static inline float pickPivotRandom(EdgeIt begin, EdgeIt end) {
+  static Random rnd(31);
+  return begin[rnd.getULong(end - begin)].w;
 }
 
 // sample only 3 elements: first, middle, last
@@ -61,22 +65,63 @@ static inline EdgeIt pickPivotSample3Random(EdgeIt begin, EdgeIt end) {
   else return c;
 }
 
+static inline vector<float> pickSamplesRootK(EdgeIt begin, EdgeIt end) {
+  static Random rnd(31);
+  int n_samples = max(int(sqrtf(end - begin)), 1);
+
+  vector<float> v;
+  v.reserve(n_samples);
+  ISize max = end - begin;
+  for (int i = 0; i < n_samples; i++) {
+    EdgeIt j = begin + rnd.getInt(max--);
+    v.push_back(j->w);
+    std::iter_swap(j, begin+max);
+  }
+
+  sort(v.begin(), v.end());
+  return v;
+}
+
 // sample sqrt(k) random elements
-static inline float pickPivotSampleRootK(vector<Edge> &edges, ISize begin, ISize end) {
+static inline float pickPivotSampleRootK(EdgeIt begin, EdgeIt end, float pos=0.5f) {
+  static Random rnd(31);
+  static vector<float> v;
+  int samples = max(int(sqrtf(end - begin)), 1);
+
+  v.clear();
+  ISize max = end - begin;
+  for (int i = 0; i < samples; i++) {
+    ISize j = rnd.getInt(max--);
+    std::iter_swap(begin+j, begin+max);
+    v.push_back(begin[max].w);
+  }
+
+  sort(v.begin(), v.end());
+  // nth_element(v.begin(), v.begin() + index, v.end());
+
+  int index = std::round(samples * pos);
+  float pivot = v[index];
+  return pivot;
+}
+
+
+
+// sample sqrt(k) random elements
+static inline float pickPivotSampleRootKOld(EdgeIt begin, EdgeIt end, float pos=0.5f) {
   static Random rnd(31);
   static vector<float> v;
   int samples = max(int(sqrtf(end - begin)), 1);
 
   v.clear();
   for (int i = 0; i < samples; i++) {
-    ISize j = rnd.getInt(begin, end);
-    v.push_back(edges[j].w);
+    ISize j = rnd.getInt(end - begin);
+    v.push_back(begin[j].w);
   }
 
-  // sort(v.begin(), v.end());
-  nth_element(v.begin(), v.begin() + samples / 2, v.end());
+  int index = std::round(samples * pos);
+  sort(v.begin(), v.end());
+  // nth_element(v.begin(), v.begin() + index, v.end());
 
-  float pivot = v[samples / 2];
-
+  float pivot = v[index];
   return pivot;
 }
