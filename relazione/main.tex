@@ -69,8 +69,8 @@ The Kruskal algorithm has been improved over the years, first in \cite{increment
 
 The Prim algorithm starts with a tree consisting of a single node, then it iteratively adds to the tree the smallest edge that connects to a node not part of the partial spanning tree. When there are no edges meeting this criteria, the procedure has produced a minimum spanning tree. The only case where this doesn't work is when the input graph is not connected and a spanning tree doesn't exist. In this case the problem becomes of finding the minimum spanning forest, and the Prim algorithm can be adapted to work on this case by simply running the Prim algorithm on all nodes of the graph that are not yet part of a spanning tree.
 
-To efficiently find the next smallest edge it is necessary to use a priority queue, like for example the Pairing Heap data structure \cite{pairing} that I used in this project.
-The time complexity of the Prim algorithm is $\mathcal{O}(E + V\log V)$.
+To efficiently find the next smallest edge it is necessary to use a priority queue, like for example the Pairing Heap data structure \cite{pairing} that I used in this project. I chose to use the Pairing Heap because it is simple to implement and has a good performance in practice.
+The time complexity of the Prim algorithm is $\mathcal{O}(E + V\log V)$ if implemented with min-heap that performs the decrease-key in constant time, it is instead $\mathcal{O}(E\log V)$ in the case of the pairing heap.
 
 \section{Kruskal Algorithm}
 
@@ -91,7 +91,7 @@ Kruskal algorithm instead follows a different approach: the list of edges is sor
 
 For an efficient implementation of the algorithm a Disjoint Set data structure can be used which accelerate the operations of $find(x)$, which returns the root of the tree containing $x$ and $union(x, y)$ which merges the trees of $x$ and $y$ into a single tree.
 
-The time complexity of the algorithm is $\mathcal{O}(E\log E)$.
+The time complexity of the algorithm is dominated by the sorting of the edge list and therefore is $\mathcal{O}(E\log E)$.
 
 \subsection{Disjoint Set}
 
@@ -101,9 +101,35 @@ The main component of the Kruskal algorithm is the Disjoint Set data structure, 
     \item \textproc{Union($x$, $y$)}: merges the two sets containing $x$ and $y$.
 \end{itemize}
 
-An efficient implementation of \textproc{Find} can use the path compression technique, which reduces the time complexity from $\mathcal{O}(n)$ to an amortized $\mathcal{O}(\alpha(n))$. Path compression consists in caching the set identifier of $x$ and every element in the path from $x$ to the representative of the set every time the $\textproc{Find}$ procedure is called.
+An efficient implementation of \textproc{Find} can use the path compression technique, which (in combination with union by rank) reduces the time complexity from $\mathcal{O}(n)$ to an amortized $\mathcal{O}(\alpha(n))$ as analized in \cite{TARJAN1979110}. Path compression consists in caching the set identifier of an element $x$ every time the \textproc{Find} procedure is called upon it. 
 
-The \textproc{Union} procedure can instead be efficiently implemented by using the union by rank variation, where the basic idea is to always add the smaller set to the bigger one when performing a union operation.
+\begin{algorithm}
+    \begin{algorithmic}
+        \Function{Find}{$x$} \Comment{With Path Compression}
+            \If{$x.parent \neq x$}
+                \State $x.parent = $ \Call{Find}{$x.parent$}
+            \EndIf
+            \State\Return $x.parent$
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
+
+The \textproc{Union} procedure can instead be efficiently implemented by using the union by rank variation, where the basic idea is to always add the smaller set to the bigger one when performing a union operation. (this on average should lead to updating fewer elements)
+
+\begin{algorithm}
+    \begin{algorithmic}
+        \Function{Union}{$x$, $y$} \Comment{Union by Rank}
+            \State $px, py := $ \Call{Find}{$x$}, \Call{Find}{$y$}
+            \If{$px \neq py$}
+                \If{$px.rank < py.rank$}
+                    \State \Call{swap}{$px$, $py$}
+                
+                \EndIf
+                \State $x.parent = $ \Call{Find}{$x.parent$}
+            \EndIf
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
 
 \subsection{Quick-Kruskal Algorithm}
 
@@ -112,7 +138,7 @@ The Quick-Kruskal algorithm variation instead of sorting the edge list before bu
 \begin{algorithm}
     \begin{algorithmic}
         \Function{QuickKruskal}{$V$, $E$, $T$}
-            \If {$\lvert E \rvert < 1000$} 
+            \If {$\lvert E \rvert < $\Call{Threshold}{$V$, $E$}} 
                 \State \Return \Call{Kruskal}{$V$, $E$, $T$}
             \EndIf
             \State $p := $ \Call{PickPivot}{$E$}
@@ -125,9 +151,11 @@ The Quick-Kruskal algorithm variation instead of sorting the edge list before bu
     \end{algorithmic}
 \end{algorithm}
 
-With this strategy the algorithm becomes much faster for graph with randomly generated weights, since the edge list needs to be sorted only up to the last edge contained in the MST and for randomly generated graphs the MST is contained in the first $\mathcal{O}(\lvert V\rvert\log \lvert V\rvert)$ smaller edges. On the other hand this algorithm is not very robust, because if the input graph has at least one heavy edge, then the entire list needs to be sorted and the complexity falls back to the standard Kruskal algorithm.
+Where \textproc{Threshold} should be $\mathcal{O}(n)$ to produce asymptotically correct results. In all of my implementations I chose \textproc{Threshold}$(V, E)=1000$ because empirically it gave me the best results.
 
-The time complexity of the algorithm for random graphs with random edges is $\mathcal{O}(E + V \log^2 V)$
+With this strategy the algorithm becomes much faster for graph with randomly generated weights, since the edge list needs to be sorted only up to the last edge contained in the MST and for randomly generated graphs the MST is contained in the first $\mathcal{O}(\lvert V\rvert\log \lvert V\rvert)$ smaller edges as analyzed in \cite{janson1993birth}. On the other hand this algorithm is not very robust, because if the MST has at least one heavy edge, then the list needs to be sorted up until the heaviest edge in the MST and the complexity falls back to the standard Kruskal algorithm.
+
+The average time complexity of the algorithm for random graphs with random edges is $\mathcal{O}(E + V \log^2 V)$ as seen in \cite{incremental}
 
 \subsection{Filter-Kruskal Algorithm}
 
@@ -136,7 +164,7 @@ The Filter-Kruskal variation is an improvement upon the Quick-Kruskal algorithm,
 \begin{algorithm}
     \begin{algorithmic}
         \Function{FilterKruskal}{$V$, $E$, $T$}
-            \If {$\lvert E \rvert < 1000$} 
+            \If {$\lvert E \rvert < $ \Call{Threshold}{$V$, $E$}} 
                 \State \Return \Call{Kruskal}{$V$, $E$, $T$}
             \EndIf
             \State $p := $ \Call{PickPivot}{$E$}
@@ -152,13 +180,13 @@ The Filter-Kruskal variation is an improvement upon the Quick-Kruskal algorithm,
 
 This simple modification of the algorithm leads to much better performance since if the graph is not very sparse, most of the edges are not part of the MST and get filtered away during the incremental sorting of the edge list, making the sorting of the remaining portion of the list easier as more edges are added to the MST.
 
-The time complexity of the algorithm for random graphs with random edge weights is $\mathcal{O}(\lvert E\rvert + \lvert V\rvert \log \lvert V \rvert \log \frac{\lvert E \rvert}{\lvert V\rvert})$
+The time complexity of the algorithm for random graphs with random edge weights is $\mathcal{O}(\lvert E\rvert + \lvert V\rvert \log \lvert V \rvert \log \frac{\lvert E \rvert}{\lvert V\rvert})$ as shown in \cite{filterkruskal}.
 
 \subsection{Skewed Filter-Kruskal Variation}
 
-To further improve the Filter-Kruskal algorithm I made the assumption that in random graphs with random edges the MST is contained in the first $\mathcal{O}(\lvert V\rvert\log \lvert V\rvert)$ smallest edges and more generally in most graphs a good portion of the MST is contained in the smallest edges of the graph if the graph is dense enough. 
+To further improve the Filter-Kruskal algorithm I made the assumption that in random graphs with random edges the MST is usually contained in the first $\mathcal{O}(\lvert V\rvert\log \lvert V\rvert)$ smallest edges and more generally in most graphs a good portion of the MST is contained in the smallest edges of the graph if the graph is dense enough. 
 
-To leverage this, in the first recursion level of \textproc{FilterKruskal} I perform a skewed partitioning, where the first partition has size $k\lvert V \rvert /\log \lvert V\rvert$ where $k$ is a constant slightly bigger than $1$. And in every other recursion level I split the edge list in half. From my tests I actually found out that using a skewed partitioning method even in inner recursion levels doesn't degrade performance. I think this happens because by using a skewed partitioning I improve the branch miss-prediction rate and the edges get filtered away earlier, decreasing the cost of the sorting. On the other hand the recursion depth increases, so the two effects roughly balance each other.
+To leverage this, in the first recursion level of \textproc{FilterKruskal} I perform a skewed partitioning, where the first partition has size $k\lvert V \rvert /\log \lvert V\rvert$ where $k$ is a constant that can be tuned, and it should usually be slightly bigger than $1$ since its purpose is to have some headroom in the case that the MST is heavier that expected. In every other recursion level instead I split the edge list in half. From my tests I actually found out that using a skewed partitioning method even in inner recursion levels doesn't degrade performance. I think this happens because by using a skewed partitioning I improve the branch miss-prediction rate and the edges get filtered away earlier, decreasing the cost of the sorting. On the other hand the recursion depth increases, so the two effects roughly balance each other.
 
 \subsection{Picking a Pivot}
 
@@ -193,9 +221,10 @@ In particular I decided to adopt the implementation of Super Scalar Sample Sort 
     \item \textbf{Assign Buckets} For every element we calculate the corresponding bucket and store all the bucket ids in a list.
     \item \textbf{Calculate Bucket Sizes and Prefix Sum} During the bucket assignment phase we also calculate the bucket sizes and calculate the prefix sum of the bucket sizes in order to easily find where each bucket starts in the output continuous array.
     \item \textbf{Distribute Elements} Distribute all the elements in the corresponding bucket disposed in a contiguous array.
+    \item \textbf{Recursion} Repeat the procedure on all the buckets. If the bucket size is under a certain threshold, instead fallback to a simpler sorting procedure.
 \end{itemize}
 
-The algorithm was adapted to the MST problem by performing a filter step before each recursion on all buckets that were not the first one. And by running kruskal instead of a sort algorithm on the base case.
+The algorithm was adapted to the MST problem by checking before each recursion step if the MST has been found, and in that case interrupting the procedure. Also a filter step has been added before each recursion on all buckets that are not the first one. Finally, when the bucket size is below a predefined threshold we run the basic kruskal algorithm instead of a sorting algorithm.
 
 \subsection{Dual Pivot QuickSort}
 
@@ -223,7 +252,7 @@ So given $p$ as the probability of any possible edge to be included in the graph
 $$p_n = (1-p)^n$$ 
 Because I need to \emph{not} choose an element for at least $n$ times. I now solve in function of $n$ and I obtain that:
 $$n = \left\lfloor\frac{\log{p_n}}{\log{(1-p)}}\right\rfloor$$
-This means that by plugging a random value in $p_n$ I can randomly calculate the skip distance to the next edge.
+This means that by plugging a random probability value in $p_n$ I can randomly calculate the skip distance to the next edge.
 In order to prove that every edge $e$ has probability $p$ of being chosen we need to show that all the probabilities of all the paths that lead to choosing $e$ sum to $p$.
 
 It is obvious that the first edge has probability $p$ of being chosen since the only way we can choose it is if we skip $0$ edges, so: 
@@ -240,7 +269,7 @@ Knowing that:
 \\ &= 1 - a^n
 \end{align*}
 
-If we consider all edges before $k$ we get that the probability of picking $k$ is:
+If we consider all paths leading to choosing $k$, we get that the probability of picking $k$ is:
 
 \begin{align*}
 C_k &= p(1-p)^k + \sum_{j=0}^{k-1} C_j p(1-p)^{k-j-1}
@@ -275,7 +304,7 @@ By using this method for the generation of graphs the complexity becomes linear 
     \end{algorithmic}
 \end{algorithm}
 
-In my implementation I decided to enumerate the edges of the upper triangular matrix from the adjacency matrix of the graph, so that $0 \leq a < b < N$ for any valid edge.
+In my implementation I decided to enumerate the edges of the upper triangular matrix from the adjacency matrix of the graph, so that $0 \leq a < b < N$ for any valid edge $(a, b)$.
 
 \subsection{Random Geometric Graphs Generation}
 
@@ -293,20 +322,13 @@ All test were performed on a Intel Core i5-6600 CPU @ 3.9GHz and all the source 
 
 \hspace{1cm}
 
+All experiments were performed on graphs with 60000 vertices, and varying the number of edges between $10^4$ and $10^9$.
+
 As can be seen in \autoref{fig:rand}, the best performing algorithm in all graph types is Skewed Filter-Kruskal, even in the case of graphs with long edges, where the procedure is forced to read and filter all edges. And for the case geometric graphs, where the higher clustering coefficient introduces heavier edges into the MST.
 
 The Filter-Kruskal variants with multiple pivots, like Samplesort Filter-Kruskal are performing worse than the standard Filter-Kruskal implementation, probably because of the too much higher constant cost of the partitioning method.
 
 Lastly the Prim algorithm implemented with Pairing Heap performs better than the standard Filter-Kruskal algorithm for denser graphs.
-
-\begin{figure}[htp]
-    \centering
-    \includegraphics[width=.7\linewidth]{images/randgraph.pdf}
-    \includegraphics[width=.7\linewidth]{images/hardgraph.pdf}
-    \includegraphics[width=.7\linewidth]{images/geomgraph.pdf}
-    \caption{Comparison of different algorithms on different graph types. From top to bottom: 1) graphs with random weights, 2) graphs with one long edge, 3) random geometric graphs}
-    \label{fig:rand}
-\end{figure}
 
 \section{Conclusions}
 
@@ -323,6 +345,16 @@ One way in which these kinds of algorithms (in particular samplesort) could brin
 
 
 %----------------------------------------------------------------------------------------
+
+\begin{figure}[htp]
+    \centering
+    \includegraphics[width=.7\linewidth]{images/randgraph.pdf}
+    \includegraphics[width=.7\linewidth]{images/hardgraph.pdf}
+    \includegraphics[width=.7\linewidth]{images/geomgraph.pdf}
+    \caption{Comparison of different algorithms on different graph types. From top to bottom: 1) graphs with random weights, 2) graphs with one long edge, 3) random geometric graphs}
+    \label{fig:rand}
+\end{figure}
+
 
 \end{document}
 

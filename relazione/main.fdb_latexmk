@@ -1,15 +1,15 @@
 # Fdb version 3
-["bibtex main"] 1620683989 "main.aux" "main.bbl" "main" 1620684547
+["bibtex main"] 1622553262 "main.aux" "main.bbl" "main" 1622553620
   "/usr/share/texlive/texmf-dist/bibtex/bst/base/unsrt.bst" 1292289607 18030 1376b4b231b50c66211e47e42eda2875 ""
-  "biblio.bib" 1620658536 2115 a69672448093539d313da2e0dfc8717f ""
-  "main.aux" 1620684547 3494 7ef7504ce770f2e24c8aef12fe073eb3 "pdflatex"
+  "biblio.bib" 1622544247 3400 b05f3c8e5a715199ac5782d93aadac31 ""
+  "main.aux" 1622553620 3651 d88672c0970ea5e0ca5e788289377f45 "pdflatex"
   (generated)
-  "main.blg"
   "main.bbl"
-["pdflatex"] 1620684547 "/home/ermanno/Desktop/ottcomb-stuff/filter-kruskal/relazione/main.tex" "/home/ermanno/Desktop/ottcomb-stuff/filter-kruskal/relazione/main.pdf" "main" 1620684547
+  "main.blg"
+["pdflatex"] 1622553619 "/home/ermanno/Desktop/ottcomb-stuff/filter-kruskal/relazione/main.tex" "/home/ermanno/Desktop/ottcomb-stuff/filter-kruskal/relazione/main.pdf" "main" 1622553620
   "/etc/texmf/web2c/texmf.cnf" 1619174560 475 c0e671620eb5563b2130f56340a5fde8 ""
-  "/home/ermanno/Desktop/ottcomb-stuff/filter-kruskal/relazione/main.aux" 1620684547 3494 7ef7504ce770f2e24c8aef12fe073eb3 ""
-  "/home/ermanno/Desktop/ottcomb-stuff/filter-kruskal/relazione/main.tex" 1620684547 22385 2b447a68cc8ad5e1a95dde4a1a92ffb2 ""
+  "/home/ermanno/Desktop/ottcomb-stuff/filter-kruskal/relazione/main.aux" 1622553620 3651 d88672c0970ea5e0ca5e788289377f45 ""
+  "/home/ermanno/Desktop/ottcomb-stuff/filter-kruskal/relazione/main.tex" 1622553619 24604 57c0bc848142a72c2b4f81ceb9a835ba ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/adobe/palatino/pplb8r.tfm" 1136768653 2532 9ad73cf4dd2173a847f2a5f5608e0b9a ""
@@ -137,14 +137,14 @@
   "images/geomgraph.pdf" 1620640887 26801 9f0fbd171df6a740252fd50f7972ec2a ""
   "images/hardgraph.pdf" 1620640887 26375 0bf76a3719a7ca89877f01d70b8425a4 ""
   "images/randgraph.pdf" 1620640887 26374 eafa466173c4aa35824a37a14e766b3b ""
-  "main.aux" 1620684547 3494 7ef7504ce770f2e24c8aef12fe073eb3 "pdflatex"
-  "main.bbl" 1620683989 1469 1859bae334a23cce743eef161148d743 "bibtex main"
-  "main.out" 1620684547 1005 4cf540c4bc749581f036c41fde35cbbf "pdflatex"
-  "main.tex" 1620684547 22385 2b447a68cc8ad5e1a95dde4a1a92ffb2 ""
+  "main.aux" 1622553620 3651 d88672c0970ea5e0ca5e788289377f45 "pdflatex"
+  "main.bbl" 1622553262 1892 44f389ad25a3dc8ad090531f0b1f166a "bibtex main"
+  "main.out" 1622553620 1005 4cf540c4bc749581f036c41fde35cbbf "pdflatex"
+  "main.tex" 1622553619 24604 57c0bc848142a72c2b4f81ceb9a835ba ""
   (generated)
-  "/home/ermanno/Desktop/ottcomb-stuff/filter-kruskal/relazione/main.pdf"
-  "main.pdf"
-  "/home/ermanno/Desktop/ottcomb-stuff/filter-kruskal/relazione/main.log"
-  "main.aux"
   "main.log"
+  "/home/ermanno/Desktop/ottcomb-stuff/filter-kruskal/relazione/main.log"
+  "main.pdf"
+  "main.aux"
   "main.out"
+  "/home/ermanno/Desktop/ottcomb-stuff/filter-kruskal/relazione/main.pdf"
