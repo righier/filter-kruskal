@@ -49,32 +49,31 @@ class kdTree {
 
   struct QueryResult {
     float d;
-    kdTree *inst;
+    int id;
 
-    QueryResult(float d, kdTree *inst) : d(d), inst(inst) {}
+    QueryResult(float d, int id) : d(d), id(id) {}
 
     bool operator<(const QueryResult &other) const { return d < other.d; }
   };
 
-  kdTree &closest(const Pos &p, int id) {
-    QueryResult best(std::numeric_limits<float>::infinity(), this);
+  QueryResult closest(const Pos &p, int id) {
+    QueryResult best(dist2(this->pos, p), id);
     closest(p, id, best);
-    return *best.inst;
+    return best;
   }
 
-  std::vector<QueryResult> closestK(const Pos &p, int id, int k) {
+  void closestK(const Pos &p, int id, int k, vector<int> &results) {
     std::priority_queue<QueryResult> best;
-    best.emplace(QueryResult(std::numeric_limits<float>::infinity(), this));
+    best.emplace(dist2(this->pos, p), id);
 
     closestK(p, id, k, best);
 
-    std::vector<QueryResult> results;
-    results.reserve(k);
-    while (!best.empty()) {
-      results.push_back(best.top());
+    size_t nResults = best.size();
+    results.resize(nResults);
+    while (nResults--) {
+      results[nResults] = best.top().id;
       best.pop();
     }
-    return results;
   }
 
   std::string getName() { return "p" + std::to_string(id); }
@@ -134,7 +133,7 @@ class kdTree {
       float d = dist(p, pos);
       if (this->id != id && d < best.d) {
         best.d = d;
-        best.inst = this;
+        best.id = this->id;
       }
 
       if (comp2(p, pos)) {
@@ -150,11 +149,11 @@ class kdTree {
   void closestK(const Pos &p, int id, int k,
                 std::priority_queue<QueryResult> &best) {
     QueryResult worst = best.top();
-    if (best.size() < k || minDist(p) < worst.d) {
+    if (best.size() < (size_t)k || minDist(p) < worst.d) {
       float d = dist2(p, pos);
-      if (this->id != id && (best.size() < k || d < worst.d)) {
-        if (best.size() == k) best.pop();
-        best.emplace(QueryResult(d, this));
+      if (this->id != id && (best.size() < (size_t)k || d < worst.d)) {
+        if (best.size() == (size_t)k) best.pop();
+        best.emplace(QueryResult(d, this->id));
       }
 
       if (comp2(p, pos)) {

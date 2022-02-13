@@ -7,3 +7,7 @@ add_executable(filter-kruskal main.cpp)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+
+find_package(PkgConfig REQUIRED)
+pkg_search_module(TBB REQUIRED tbb)
+link_libraries(PkgConfig::TBB)

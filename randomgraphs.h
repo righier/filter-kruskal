@@ -1,11 +1,13 @@
 #pragma once
 
 #include <algorithm>
+#include <execution>
 #include <cmath>
 #include <set>
 #include <vector>
 #include <unordered_set>
 
+#include "nanoflann.h"
 #include "kdtree.h"
 #include "random.h"
 #include "utils.h"
@@ -21,25 +23,10 @@ static std::vector<Pos> randomNodes(Random &rnd, int n, float maxcoord) {
   return nodes;
 }
 
-static void removeDuplicates(Random &rnd, Edges &edges, int m) {
-  auto comp = [](const Edge &a, const Edge &b) {
-    return (a.a == b.a && a.b < b.b) || a.a < b.a;
-  };
-  auto comp2 = [](const Edge &a, const Edge &b) {
-    return a.a == b.a && a.b == b.b;
-  };
-  std::sort(edges.begin(), edges.end(), comp);
-  edges.resize(std::unique(edges.begin(), edges.end(), comp2) - edges.begin());
-
-  std::random_shuffle(edges.begin(), edges.end(),
-                      [&](u64 n) { return rnd.getUint64() % n; });
-  // edges.resize(m);
-}
-
 static void printDot(const std::vector<Pos> &nodes,
                      const std::vector<Edge> &edges) {
   std::cout << "graph name {" << std::endl;
-  for (int i = 0; i < nodes.size(); i++) {
+  for (size_t i = 0; i < nodes.size(); i++) {
     Pos pos = nodes[i];
     std::string name = "p" + std::to_string(i);
     std::cout << name << " [pos = \"" << pos.x << "," << pos.y << "!\"];"
@@ -68,6 +55,7 @@ static void randomGeometricGraphFull(Random &rnd, int n, float maxcoord, Edges &
   }
 }
 
+/*
 static void randomGeometricGraphDense(Random &rnd, int n, i64 m, float maxcoord, Edges &edges,
                                   bool printDotGraph = false) {
   i64 maxm = i64(n) * (i64(n) - 1) / 2;
@@ -101,13 +89,72 @@ static void randomGeometricGraphDense(Random &rnd, int n, i64 m, float maxcoord,
     printDot(nodes, edges);
   }
 }
+*/
+
+struct PointCloud
+{
+    std::vector<Pos> pts;
+
+    inline size_t kdtree_get_point_count() const { return pts.size(); }
+
+    inline float kdtree_get_pt(const size_t idx, const size_t dim) const {
+      if (dim == 0) return pts[idx].x;
+      else return pts[idx].y;
+    }
+
+    template <class BBOX>
+    bool kdtree_get_bbox(BBOX& /* bb */) const {
+      return false;
+    }
+};
+
+static void randomGeometricGraphFast2(Random &rnd, int n, i64 m, float maxcoord, Edges &edges) {
+
+  // i64 maxm = i64(n) * (i64(n) - 1) / 2;
+  // if (m >= maxm) return randomGeometricGraphFull(rnd, n, maxcoord, edges);
+  // if (m >= maxm * 0.5) return randomGeometricGraphDense(rnd, n, m, maxcoord, edges, printDotGraph);
+  int k = (int)std::ceil(double(m) * 1.82 / n);
+
+  PointCloud points;
+  points.pts = randomNodes(rnd, n, maxcoord);
+  
+  using KdTree = nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<float, PointCloud>, PointCloud, 3>;
+
+  KdTree index(2, points, {10});
+  index.buildIndex();
+
+  vector<uint32_t> retIndex(k);
+  vector<float> retDist(k);
+
+  for (int i = 0; i < n; i++) {
+
+    Pos &pos = points.pts[i];
+    const float p[] = {pos.x, pos.y};
+
+    retIndex.clear();
+    retDist.clear();
+    auto nResults = index.knnSearch(&p[0], k, &retIndex[0], &retDist[0]);
+    for (size_t it = 0; it < nResults; it++) {
+      float dist = retDist[it];
+      int j = retIndex[it];
+
+      Edge e(i, j, sqrt(dist));
+      if (e.a > e.b) std::swap(e.a, e.b);
+      edges.emplace_back(e);
+    }
+  }
+
+  std::random_shuffle(edges.begin(), edges.end());
+  std::sort(edges.begin(), edges.end(), Edge::compareNodes);
+  std::unique(edges.begin(), edges.end(), Edge::compareNodes);
+}
 
 static void randomGeometricGraphFast(Random &rnd, int n, i64 m, float maxcoord, Edges &edges,
                                       bool printDotGraph = false,
                                       bool printDotTree = false) {
   i64 maxm = i64(n) * (i64(n) - 1) / 2;
   if (m >= maxm) return randomGeometricGraphFull(rnd, n, maxcoord, edges);
-  if (m >= maxm * 0.5) return randomGeometricGraphDense(rnd, n, m, maxcoord, edges, printDotGraph);
+  // if (m >= maxm * 0.5) return randomGeometricGraphDense(rnd, n, m, maxcoord, edges, printDotGraph);
   int k = (int)std::ceil(double(m) * 1.82 / n);
 
   auto nodes = randomNodes(rnd, n, maxcoord);
@@ -115,23 +162,27 @@ static void randomGeometricGraphFast(Random &rnd, int n, i64 m, float maxcoord, 
 
   if (printDotTree) { tree.printDot(); }
 
-  unordered_set<u64> used;
-  for (int i = 0; i < n; i++) {
-    auto nearest = tree.closestK(nodes[i], i, k);
-    for (auto result : nearest) {
-      Edge e(i, result.inst->getId(), sqrt(result.d));
-      if (e.a > e.b) std::swap(e.a, e.b);
-      u64 edgeId = (u64)e.a * (u64)n + (u64)e.b;
-      if (used.count(edgeId) == 0) {
-        edges.emplace_back(e);
-        used.insert(edgeId);
-      }
-    }
-  }
+  edges.resize(n*k);
 
-  random_shuffle(edges.begin(), edges.end());
-  std::sort(edges.begin(), edges.end(), Edge::compareNodes);
-  std::unique(edges.begin(), edges.end(), Edge::compareNodes);
+  std::vector<int> iter(n);
+  std::iota(std::begin(iter), std::end(iter), 0);
+  std::for_each(
+      std::execution::par,
+      std::begin(iter), std::end(iter), [&](int i)
+  {
+    std::vector<int> nearest;
+    tree.closestK(nodes[i], i, k, nearest);
+    for (size_t j = 0; j < nearest.size(); j++) {
+      int other = nearest[j];
+      Edge e(i, other, sqrt(dist2(nodes[i], nodes[other])));
+      if (e.a > e.b) std::swap(e.a, e.b);
+      edges[i*k + j] = e;
+    } 
+  });
+
+  std::random_shuffle(edges.begin(), edges.end());
+  std::sort(std::execution::par, edges.begin(), edges.end(), Edge::compareNodes);
+  std::unique(std::execution::par, edges.begin(), edges.end(), Edge::compareNodes);
 
   if (printDotGraph) { printDot(nodes, edges); }
 }

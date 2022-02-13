@@ -24,9 +24,9 @@ static inline EdgeIt partitionCopy(EdgeIt afirst, EdgeIt alast, EdgeIt bfirst, E
 
 static inline EdgeIt partition(EdgeIt first, EdgeIt last, float pivot) {
   while (first < last) {
-    while (first < last & first->w < pivot) ++first;
+    while (first < last && first->w < pivot) ++first;
     --last;
-    while (first < last & last->w >= pivot) --last;
+    while (first < last && last->w >= pivot) --last;
     if (first < last) {
       iter_swap(first, last);
       ++first;
@@ -102,7 +102,7 @@ static inline pair<EdgeIt, EdgeIt> partition3(EdgeIt first, EdgeIt last, float p
       iter_swap(k, l);
       ++l;
     } else if (k->w >= q) {
-      while (g->w > q & k < g) --g;
+      while (g->w > q && k < g) --g;
       iter_swap(k, g);
       --g;
       if (k->w < p) {
@@ -242,7 +242,7 @@ static inline float filterKruskalSkewed(DisjointSet &set, EdgeIt begin, EdgeIt e
 
   ISize sample_size = sample_end - sample_begin;
   SampleIt pivot;
-  if (first_iter) pivot = sample_begin + sample_size * std::min(0.5f, (float(N) * log2f(N) * 1.01f) / float(M));
+  if (first_iter) pivot = sample_begin + sample_size * std::min(0.5f, (float(N) * log2f(N) * skewConst) / float(M));
   else pivot = sample_begin + sample_size/2;
 
   float pivotVal = *pivot;
@@ -422,6 +422,7 @@ float filterKruskalCopy(vector<Edge> &edges, int N) {
 }
 
 float filterKruskalSkewed(vector<Edge> &edges, int N, float skew=0.5f) {
+  UNUSED(skew);
   DisjointSet set(N);
   auto samples = pickSamplesRootK(edges.begin(), edges.end());
   int card = 0;

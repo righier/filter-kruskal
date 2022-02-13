@@ -63,6 +63,8 @@ pair<double, double> genGraph(Random rnd, int N, int M, string &graphType, Edges
 }
 
 RunResult run(int N, int M, int T, string &algorithm, string &graphType, Edges &_edges, Graph &graph, float skew = 0.5) {
+  UNUSED(M);
+  UNUSED(graphType);
   Random rnd(31);
 
 
@@ -93,14 +95,14 @@ RunResult run(int N, int M, int T, string &algorithm, string &graphType, Edges &
       unreachable();
     }
 
-    double delta = timer.delta();
+    // double delta = timer.delta();
     totalCost += cost;
   }
 
   RunResult output {
-    .time = timer.avg(),
-    .genTime = 0, // disabled graph generation measurement for now
-    .cost = totalCost
+    time = timer.avg(),
+    genTime = 0, // disabled graph generation measurement for now
+    cost = totalCost
   };
 
   return output;
@@ -149,7 +151,7 @@ void runBenchmark() {
         Edges edges;
         Graph graph;
         genGraph(rnd, N, M, graphType, edges, graph);
-        double genTime = genTimer.delta();
+        // double genTime = genTimer.delta();
 
         vector<int> algoPerm(algos.size());
         iota(algoPerm.begin(), algoPerm.end(), 0);
@@ -206,8 +208,9 @@ int main(int argc, char **argv) {
   auto fn3 = [&](){ Random rnd(31); Edges es; randomGeometricGraphFast(rnd, N, M, 1.0, es); };
   measure(fn3);
 
-  auto fn4 = [&](){ Random rnd(31); Edges es; randomGeometricGraphDense(rnd, N, M, 1.0, es); };
+  auto fn4 = [&](){ Random rnd(31); Edges es; randomGeometricGraphFast2(rnd, N, M, 1.0, es); };
   measure(fn4);
+
 
   // measure([&](){
   //   Random rnd(31); Edges es; randomGraph(rnd, N, M, 1.0, es);

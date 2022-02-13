@@ -44,10 +44,12 @@
 #include <random>
 
 // Compiler hints about invariants, inspired by ICC's __assume()
-#define __assume(cond)                    \
-  ({                                      \
-    if (!(cond)) __builtin_unreachable(); \
-  })
+#define __assume(cond)         \
+  do                           \
+  {                            \
+    if (!(cond))               \
+      __builtin_unreachable(); \
+  } while (0)
 
 #include "filterkruskal.h"
 
@@ -256,7 +258,7 @@ float ssssort_int(DisjointSet &set, EdgeIt begin, EdgeIt end,
 
     auto out_end = filterAll(set, out_begin + offset, out_begin + classifier.bktsize[i]);
 
-    auto size = out_end - out_begin;
+    size_t size = out_end - out_begin;
     if (size == 0) continue;  // empty bucket
     if (size <= basecase_size || (n / size) < 2) {
       cost += kruskal(set, out_begin + offset, out_end, N, card, true);
