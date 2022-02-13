@@ -243,7 +243,7 @@ static inline float filterKruskalSkewed(DisjointSet &set, EdgeIt begin, EdgeIt e
   ISize sample_size = sample_end - sample_begin;
   SampleIt pivot;
   if (first_iter) pivot = sample_begin + sample_size * std::min(0.5f, (float(N) * log2f(N) * skewConst) / float(M));
-  else pivot = sample_begin + sample_size/2;
+  else pivot = sample_begin + sample_size/4;
 
   float pivotVal = *pivot;
   // EdgeIt mid = partition2(begin, end, pivotVal);
