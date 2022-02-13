@@ -120,6 +120,11 @@ class kdTree {
   static bool compX(const Pos &a, const Pos &b) { return a.x < b.x; }
   static bool compY(const Pos &a, const Pos &b) { return a.y < b.y; }
 
+  bool comp2(const Pos &a, const Pos &b) {
+    if (dim) return compY(a, b);
+    else return compX(a, b);
+  }
+
   float minDist(const Pos &p) {
     return len2(max(Pos(0, 0), abs(p - boxCenter) - boxHalfSize));
   }
@@ -132,7 +137,7 @@ class kdTree {
         best.inst = this;
       }
 
-      if (comp()(p, pos)) {
+      if (comp2(p, pos)) {
         if (left) left->closest(p, id, best);
         if (right) right->closest(p, id, best);
       } else {
@@ -152,7 +157,7 @@ class kdTree {
         best.emplace(QueryResult(d, this));
       }
 
-      if (comp()(p, pos)) {
+      if (comp2(p, pos)) {
         if (left) left->closestK(p, id, k, best);
         if (right) right->closestK(p, id, k, best);
       } else {

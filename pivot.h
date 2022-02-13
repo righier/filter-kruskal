@@ -33,9 +33,10 @@ static inline EdgeIt pickPivotRandomPos(EdgeIt begin, EdgeIt end) {
   return begin + rnd.getULong(end - begin);
 }
 
-static inline float pickPivotRandom(EdgeIt begin, EdgeIt end) {
+static float pickPivotRandom(EdgeIt begin, EdgeIt end) {
   static Random rnd(31);
-  return begin[rnd.getULong(end - begin)].w;
+  auto val = rnd.getULong(end - begin);
+  return begin[val].w;
 }
 
 // sample only 3 elements: first, middle, last
@@ -70,6 +71,7 @@ static inline vector<float> pickSamplesRootK(EdgeIt begin, EdgeIt end) {
   int n_samples = max(int(sqrtf(end - begin)), 1);
 
   vector<float> v;
+  if (n_samples > (end - begin)) return v;
   v.reserve(n_samples);
   ISize max = end - begin;
   for (int i = 0; i < n_samples; i++) {

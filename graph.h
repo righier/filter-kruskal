@@ -15,6 +15,16 @@ struct Edge {
 
   bool operator<(const Edge &other) const { return w < other.w; }
   bool operator==(const Edge &other) const { return w == other.w; }
+
+  static bool compareNodes(const Edge &a, const Edge &b) {
+    return a.a == b.a
+               ? (a.b < b.b)
+               : (a.a < b.a);
+  }
+
+  static bool sameNodes(const Edge &a, const Edge &b) {
+    return a.a == b.a && a.b == b.b;
+  }
 };
 
 typedef std::vector<Edge> Edges;
@@ -133,4 +143,28 @@ static Graph edgesToGraph(const std::vector<Edge> &edges) {
     g[e.b].emplace_back(std::make_pair(e.w, e.a));
   }
   return g;
+}
+
+static void edgesToGraph(const Edges &edges, int N, Graph &g) {
+  vector<int> count(N);
+  for (const Edge &e : edges) {
+    count[e.a]++;
+    count[e.b]++;
+  }
+
+  for (int i = 0; i < N; i++) {
+    g[i].resize(count[i]);
+  }
+
+  for (const Edge &e :edges) {
+    g[e.a][--count[e.a]] = {e.w, e.b};
+    g[e.b][--count[e.b]] = {e.w, e.a};
+  }
+
+  /*
+  for (const Edge &e : edges) {
+    g[e.a].emplace_back(std::make_pair(e.w, e.b));
+    g[e.b].emplace_back(std::make_pair(e.w, e.a));
+  }
+  */
 }
