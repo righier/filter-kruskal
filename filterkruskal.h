@@ -230,7 +230,7 @@ static inline float filterKruskalNaive(DisjointSet &set, EdgeIt first, EdgeIt la
 
 
 template<typename SampleIt>
-static inline float filterKruskalSkewed(DisjointSet &set, EdgeIt begin, EdgeIt end, SampleIt sample_begin, SampleIt sample_end, int N, int &card, bool first_iter=true, float skewConst = 1.01f) {
+static inline float filterKruskalSkewed(DisjointSet &set, EdgeIt begin, EdgeIt end, SampleIt sample_begin, SampleIt sample_end, int N, int &card, bool first_iter=true, float skewConst = 0.55f) {
   ISize M = (end - begin);
   if (M < 500) {
     return kruskal(set, begin, end, N, card, true);

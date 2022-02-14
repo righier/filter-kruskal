@@ -105,9 +105,9 @@ void runBenchmark() {
 
   int nSteps = 14;
   int T = 20;
-  // vector<string> graphTypes = {"randgraph", "hardgraph", "geomgraph"};
-  vector<string> graphTypes = {"geomgraph"};
-  vector<string> algos = {"prim", "kruskal", "filterkruskalnaive", "filterkruskalskewed"};
+  vector<string> graphTypes = {"randgraph", "hardgraph", "geomgraph"};
+  // vector<string> graphTypes = {"geomgraph"};
+  vector<string> algos = {"prim", "filterkruskalskewed"};
 
   Random rnd(123498);
 

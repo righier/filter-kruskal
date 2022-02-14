@@ -1,13 +1,11 @@
 #pragma once
 
 #include <algorithm>
-#include <execution>
 #include <cmath>
 #include <set>
 #include <vector>
 #include <unordered_set>
 
-#include "nanoflann.h"
 #include "kdtree.h"
 #include "random.h"
 #include "utils.h"
@@ -83,9 +81,9 @@ static void randomGeometricGraphSeq(Random &rnd, int n, i64 m, float maxcoord, E
 
   }
 
-  random_shuffle(edges.begin(), edges.end());
   sort(edges.begin(), edges.end(), Edge::compareNodes);
   edges.erase(unique(edges.begin(), edges.end(), Edge::sameNodes), edges.end());
+  random_shuffle(edges.begin(), edges.end());
 
   if (printDotGraph) { printDot(nodes, edges); }
 }
