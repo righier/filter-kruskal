@@ -80,5 +80,4 @@ struct DisjointSet {
     p[pb] = pa;
     return true;
   }
-
 };

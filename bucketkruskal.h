@@ -1,5 +1,6 @@
 #pragma once
 
+#include "kruskal.h"
 #include "samplesort.h"
 
 float bucketKruskal(DisjointSet &set, vector<Edge> &edges,

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "kruskal.h"
-#include "utils.h"
-#include "random.h"
-
 #include <algorithm>
+
+#include "kruskal.h"
+#include "random.h"
+#include "utils.h"
 
 // pick the first element as pivot
 static inline float pickPivot(vector<Edge> &edges, ISize begin, ISize end) {
@@ -14,14 +14,16 @@ static inline float pickPivot(vector<Edge> &edges, ISize begin, ISize end) {
 }
 
 // pick a random pivot
-static inline float pickPivotRandom(vector<Edge> &edges, ISize begin, ISize end) {
+static inline float pickPivotRandom(vector<Edge> &edges, ISize begin,
+                                    ISize end) {
   static Random rnd(31);
   // ISize i = rnd.getInt(begin, end);
   // swap(edges[begin], edges[end]);
   return edges[rnd.getULong(begin, end)].w;
 }
 
-static inline ISize pickPivotRandomPos(vector<Edge> &edges, ISize begin, ISize end) {
+static inline ISize pickPivotRandomPos(vector<Edge> &edges, ISize begin,
+                                       ISize end) {
   UNUSED(edges);
   static Random rnd(31);
 
@@ -43,7 +45,7 @@ static float pickPivotRandom(EdgeIt begin, EdgeIt end) {
 static inline EdgeIt pickPivotSample3(EdgeIt begin, EdgeIt end) {
   EdgeIt a = begin;
   EdgeIt b = end - 1;
-  EdgeIt c = begin + (end - begin)/2;
+  EdgeIt c = begin + (end - begin) / 2;
 
   if (a > b) swap(a, b);
   if (c < a) return a;
@@ -62,8 +64,10 @@ static inline EdgeIt pickPivotSample3Random(EdgeIt begin, EdgeIt end) {
 
   if (a > b) swap(a, b);
   if (c < a) return a;
-  if (b < c) return b;
-  else return c;
+  if (b < c)
+    return b;
+  else
+    return c;
 }
 
 static inline vector<float> pickSamplesRootK(EdgeIt begin, EdgeIt end) {
@@ -77,7 +81,7 @@ static inline vector<float> pickSamplesRootK(EdgeIt begin, EdgeIt end) {
   for (int i = 0; i < n_samples; i++) {
     EdgeIt j = begin + rnd.getInt(max--);
     v.push_back(j->w);
-    std::iter_swap(j, begin+max);
+    std::iter_swap(j, begin + max);
   }
 
   sort(v.begin(), v.end());
@@ -85,7 +89,8 @@ static inline vector<float> pickSamplesRootK(EdgeIt begin, EdgeIt end) {
 }
 
 // sample sqrt(k) random elements
-static inline float pickPivotSampleRootK(EdgeIt begin, EdgeIt end, float pos=0.5f) {
+static inline float pickPivotSampleRootK(EdgeIt begin, EdgeIt end,
+                                         float pos = 0.5f) {
   static Random rnd(31);
   static vector<float> v;
   int samples = max(int(sqrtf(end - begin)), 1);
@@ -94,7 +99,7 @@ static inline float pickPivotSampleRootK(EdgeIt begin, EdgeIt end, float pos=0.5
   ISize max = end - begin;
   for (int i = 0; i < samples; i++) {
     ISize j = rnd.getInt(max--);
-    std::iter_swap(begin+j, begin+max);
+    std::iter_swap(begin + j, begin + max);
     v.push_back(begin[max].w);
   }
 
@@ -106,10 +111,9 @@ static inline float pickPivotSampleRootK(EdgeIt begin, EdgeIt end, float pos=0.5
   return pivot;
 }
 
-
-
 // sample sqrt(k) random elements
-static inline float pickPivotSampleRootKOld(EdgeIt begin, EdgeIt end, float pos=0.5f) {
+static inline float pickPivotSampleRootKOld(EdgeIt begin, EdgeIt end,
+                                            float pos = 0.5f) {
   static Random rnd(31);
   static vector<float> v;
   int samples = max(int(sqrtf(end - begin)), 1);

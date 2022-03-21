@@ -1,7 +1,9 @@
 #pragma once
 
-#include "utils.h"
+#include "filterkruskal.h"
+#include "kruskal.h"
 #include "random.h"
+#include "utils.h"
 
 // the maximum number of buckets for this implementation is 256 = 2^8
 constexpr size_t logBuckets = 8;
@@ -90,9 +92,9 @@ void distribute(vector<Edge> &edges, vector<Edge> &outEdges, ISize begin,
   }
 }
 
-float sampleKruskal(DisjointSet &set, vector<Edge> &edges, vector<Edge> &outEdges,
-                  ISize begin, ISize end, int N, vector<u8> &bucketIds,
-                  int &card) {
+float sampleKruskal(DisjointSet &set, vector<Edge> &edges,
+                    vector<Edge> &outEdges, ISize begin, ISize end, int N,
+                    vector<u8> &bucketIds, int &card) {
   static vector<int> pivots(numPivots);
 
   ISize M = end - begin;
@@ -118,8 +120,10 @@ float sampleKruskal(DisjointSet &set, vector<Edge> &edges, vector<Edge> &outEdge
     if (i > 0) {
       newEnd = filterAll(set, outEdges, newBegin, newEnd);
     }
-    cost += filterKruskalNaive(set, outEdges.begin()+newBegin, outEdges.begin()+newEnd, N, card);
-    // cost += sampleKruskal(set, outEdges, edges, newBegin, newEnd, N, bucketIds, card);
+    cost += filterKruskalNaive(set, outEdges.begin() + newBegin,
+                               outEdges.begin() + newEnd, N, card);
+    // cost += sampleKruskal(set, outEdges, edges, newBegin, newEnd, N,
+    // bucketIds, card);
     newBegin = newEnd;
 
     if (card >= N - 1) {

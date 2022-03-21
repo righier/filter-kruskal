@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
-#include "utils.h"
 #include "graph.h"
+#include "utils.h"
 
 static void edgesToFile(const std::vector<Edge> &edges,
                         const std::string &path) {

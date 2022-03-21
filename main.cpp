@@ -1,18 +1,17 @@
-#include <stack>
 #include <fstream>
+#include <stack>
 
 #include "args.h"
-#include "utils.h"
-#include "graph.h"
-#include "timer.h"
-
-#include "prim.h"
-#include "kruskal.h"
-#include "filterkruskal.h"
 #include "bucketkruskal.h"
+#include "filterkruskal.h"
+#include "graph.h"
+#include "kruskal.h"
+#include "prim.h"
 #include "randomgraphs.h"
 #include "samplesort.h"
 #include "superkruskal.h"
+#include "timer.h"
+#include "utils.h"
 
 bool isVerbose = false;
 bool verbose() { return isVerbose; }
@@ -28,20 +27,24 @@ typedef pair<Edges, Graph> GraphData;
 int countDuplicates(const Edges &edges) {
   unordered_map<float, int> count;
   int best = 0;
-  for (Edge e: edges) {
+  for (Edge e : edges) {
     best = max(best, ++count[e.w]);
   }
   return best;
 }
 
-pair<double, double> genGraph(Random &rnd, int N, int M, string &graphType, Edges &edges, Graph &graph, bool skipAdjList = false) {
-
+pair<double, double> genGraph(Random &rnd, int N, int M, string &graphType,
+                              Edges &edges, Graph &graph,
+                              bool skipAdjList = false) {
   Timer<> timer;
   timer.start();
 
-  if (graphType == "randgraph") randomGraph(rnd, N, M, 1.0f, edges);
-  else if (graphType == "geomgraph") randomGeometricGraphSeq(rnd, N, M, 1.0f, edges);
-  else if (graphType == "hardgraph") randomGraphOneLong(rnd, N, M, 1.0f, edges);
+  if (graphType == "randgraph")
+    randomGraph(rnd, N, M, 1.0f, edges);
+  else if (graphType == "geomgraph")
+    randomGeometricGraphSeq(rnd, N, M, 1.0f, edges);
+  else if (graphType == "hardgraph")
+    randomGraphOneLong(rnd, N, M, 1.0f, edges);
   else {
     cout << "invalid generator name" << endl;
     unreachable();
@@ -62,47 +65,57 @@ pair<double, double> genGraph(Random &rnd, int N, int M, string &graphType, Edge
   return {t1, t2};
 }
 
-RunResult run(int N, int M, int T, string &algorithm, string &graphType, Edges edges, Graph &graph, float skew = 0.5) {
+RunResult run(int N, int M, int T, string &algorithm, string &graphType,
+              Edges edges, Graph &graph, float skew = 0.5) {
   UNUSED(M);
   UNUSED(graphType);
 
   Timer<> timer;
   float totalCost = 0;
 
-    timer.start();
+  timer.start();
 
-    float cost;
-    if (algorithm == "kruskal") cost = kruskal(edges, N);
-    else if (algorithm == "filterkruskalnaive") cost = filterKruskalNaive(edges, N);
-    else if (algorithm == "filterkruskalskewed") cost = filterKruskalSkewed(edges, N, skew);
-    else if (algorithm == "filterkruskalnaive2") cost = filterKruskalNaive2(edges, N);
-    else if (algorithm == "filterkruskalcopy") cost = filterKruskalCopy(edges, N);
-    else if (algorithm == "filterkruskal") cost = filterKruskal(edges, N);
-    else if (algorithm == "filterkruskalrec") cost = filterKruskalRec(edges, N);
-    else if (algorithm == "filterkruskalrec2") cost = filterKruskalRec2(edges, N);
-    else if (algorithm == "samplekruskal") cost = sampleKruskal(edges, N);
-    else if (algorithm == "bucketkruskal") cost = bucketKruskal(edges, N);
-    else if (algorithm == "superkruskal") cost = superKruskal(edges, N);
-    else if (algorithm == "prim") cost = prim(graph);
-    else {
-      cout << "invalid algorithm name" << endl;
-      unreachable();
-    }
+  float cost;
+  if (algorithm == "kruskal")
+    cost = kruskal(edges, N);
+  else if (algorithm == "filterkruskalnaive")
+    cost = filterKruskalNaive(edges, N);
+  else if (algorithm == "filterkruskalskewed")
+    cost = filterKruskalSkewed(edges, N, skew);
+  else if (algorithm == "filterkruskalnaive2")
+    cost = filterKruskalNaive2(edges, N);
+  else if (algorithm == "filterkruskalcopy")
+    cost = filterKruskalCopy(edges, N);
+  else if (algorithm == "filterkruskal")
+    cost = filterKruskal(edges, N);
+  else if (algorithm == "filterkruskalrec")
+    cost = filterKruskalRec(edges, N);
+  else if (algorithm == "filterkruskalrec2")
+    cost = filterKruskalRec2(edges, N);
+  else if (algorithm == "samplekruskal")
+    cost = sampleKruskal(edges, N);
+  else if (algorithm == "bucketkruskal")
+    cost = bucketKruskal(edges, N);
+  else if (algorithm == "superkruskal")
+    cost = superKruskal(edges, N);
+  else if (algorithm == "prim")
+    cost = prim(graph);
+  else {
+    cout << "invalid algorithm name" << endl;
+    unreachable();
+  }
 
-    double delta = timer.delta();
-    totalCost += cost;
+  double delta = timer.delta();
+  totalCost += cost;
 
-  RunResult output {
-    delta,
-    0, // disabled graph generation measurement for now
-    totalCost
-  };
+  RunResult output{delta,
+                   0,  // disabled graph generation measurement for now
+                   totalCost};
 
   return output;
 }
 
 void runBenchmark() {
-
   int nSteps = 14;
   int T = 20;
   vector<string> graphTypes = {"randgraph", "hardgraph", "geomgraph"};
@@ -111,17 +124,17 @@ void runBenchmark() {
 
   Random rnd(123498);
 
-  for (string &graphType: graphTypes) {
+  for (string &graphType : graphTypes) {
     ofstream fout;
     string fileName = graphType + ".csv";
     fout.open(fileName, ofstream::out | ofstream::trunc);
 
-    int totalTasks = (nSteps) * T * algos.size();
+    int totalTasks = (nSteps)*T * algos.size();
     int taskCount = 0;
 
     // print header
     fout << "N,M,";
-    for (auto &s: algos) fout << s << ",";
+    for (auto &s : algos) fout << s << ",";
     fout << endl;
 
     for (int i = 0; i < nSteps; i++) {
@@ -140,49 +153,45 @@ void runBenchmark() {
       double avgM = 0;
 
       for (int i = 0; i < T; i++) {
-
         Timer<> genTimer;
         genTimer.start();
 
         Edges edges;
         Graph graph;
-        
+
         auto genTime = genGraph(rnd, N, M, graphType, edges, graph);
         // double genTime = genTimer.delta();
 
         // cout << "Graph: " << graphType << " " << N << " " << edges.size()
-            //  << " " << genTime.first << " " << genTime.second << endl;
+        //  << " " << genTime.first << " " << genTime.second << endl;
 
         avgM += edges.size();
 
         vector<int> algoPerm(algos.size());
         iota(algoPerm.begin(), algoPerm.end(), 0);
         random_shuffle(algoPerm.begin(), algoPerm.end());
-        for (int j: algoPerm) {
+        for (int j : algoPerm) {
           RunResult result = run(N, M, 1, algos[j], graphType, edges, graph);
           totalTime[j] += result.time;
           taskCount++;
-
         }
-
       }
 
-      cout << "M: " << (int) round(avgM/T) << endl;
-      cout << "Progress: " << (int)(100 * (taskCount / (double)totalTasks)) << "%" << endl;
+      cout << "M: " << (int)round(avgM / T) << endl;
+      cout << "Progress: " << (int)(100 * (taskCount / (double)totalTasks))
+           << "%" << endl;
 
-      fout << N << "," << (int)round(avgM/T) << ",";
+      fout << N << "," << (int)round(avgM / T) << ",";
 
-      for (double timeElapsed: totalTime) {
+      for (double timeElapsed : totalTime) {
         fout << (timeElapsed * 1000 / T) << ",";
       }
       fout << endl;
     }
   }
-
-
 }
 
-template<typename F>
+template <typename F>
 void measure(F &f) {
   Timer<> timer;
   timer.start();
@@ -204,6 +213,8 @@ int main(int argc, char **argv) {
 
   bool isBenchmark = args.getBool("--benchmark");
 
+  cout << "hello" << endl;
+
   // Random rnd(31);
   // Edges es;
   // randomGeometricGraphSeq(rnd, 10, 20, 1.0, es);
@@ -212,14 +223,14 @@ int main(int argc, char **argv) {
   // }
   // return 0;
 
-  // auto fn = [&](){ Random rnd(31); Edges es; randomGraph(rnd, N, M, 1.0, es); };
-  // measure(fn);
+  // auto fn = [&](){ Random rnd(31); Edges es; randomGraph(rnd, N, M, 1.0, es);
+  // }; measure(fn);
 
-  // auto fn2 = [&](){ Random rnd(31); Edges es; randomGraphDense(rnd, N, M, 1.0, es); };
-  // measure(fn2);
+  // auto fn2 = [&](){ Random rnd(31); Edges es; randomGraphDense(rnd, N,
+  // M, 1.0, es); }; measure(fn2);
 
-  // auto fn4 = [&](){ Random rnd(31); Edges es; randomGeometricGraphSeq(rnd, N, M, 1.0, es); };
-  // measure(fn4);
+  // auto fn4 = [&](){ Random rnd(31); Edges es; randomGeometricGraphSeq(rnd, N,
+  // M, 1.0, es); }; measure(fn4);
 
   if (isBenchmark) {
     runBenchmark();
@@ -232,9 +243,10 @@ int main(int argc, char **argv) {
     genGraph(rnd, N, M, G, edges, graph, S != "prim");
     double genTime = genTimer.delta();
     RunResult out = run(N, M, T, S, G, edges, graph, skew);
-    cout << S << " " << N << " " << edges.size() << " cost: " << out.cost << " , time: " << 1000 * out.time << ", gen+solve time: " << 1000 * (out.time + genTime) << endl;
+    cout << S << " " << N << " " << edges.size() << " cost: " << out.cost
+         << " , time: " << 1000 * out.time
+         << ", gen+solve time: " << 1000 * (out.time + genTime) << endl;
   }
-
 
   return 0;
 }

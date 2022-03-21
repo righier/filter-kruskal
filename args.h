@@ -1,11 +1,11 @@
 #pragma once
 
+#include <cstdlib>
+#include <iostream>
 #include <string>
 #include <unordered_map>
 
 #include "assert.h"
-#include <cstdlib>
-#include <iostream>
 
 struct Args {
   std::unordered_map<std::string, std::string> args;

@@ -120,8 +120,10 @@ class kdTree {
   static bool compY(const Pos &a, const Pos &b) { return a.y < b.y; }
 
   bool comp2(const Pos &a, const Pos &b) {
-    if (dim) return compY(a, b);
-    else return compX(a, b);
+    if (dim)
+      return compY(a, b);
+    else
+      return compX(a, b);
   }
 
   float minDist(const Pos &p) {

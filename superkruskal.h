@@ -44,11 +44,9 @@
 #include <random>
 
 // Compiler hints about invariants, inspired by ICC's __assume()
-#define __assume(cond)         \
-  do                           \
-  {                            \
-    if (!(cond))               \
-      __builtin_unreachable(); \
+#define __assume(cond)                    \
+  do {                                    \
+    if (!(cond)) __builtin_unreachable(); \
   } while (0)
 
 #include "filterkruskal.h"
@@ -58,11 +56,12 @@ namespace ssssort {
 constexpr std::size_t basecase_size = 1024;
 constexpr std::size_t logBuckets = 8;
 constexpr std::size_t numBuckets = 1 << logBuckets;
-using bucket_t = std::uint32_t; // TODO: try smaller bucket size
+using bucket_t = std::uint32_t;  // TODO: try smaller bucket size
 thread_local Random rnd(31);
 
 struct Sampler {
-  static void draw_sample(EdgeIt begin, EdgeIt end, Edge* samples, std::size_t sample_size) {
+  static void draw_sample(EdgeIt begin, EdgeIt end, Edge* samples,
+                          std::size_t sample_size) {
     assert(begin <= end);
     std::size_t max = static_cast<std::size_t>(end - begin);
     for (std::size_t i = 0; i < sample_size; ++i) {
@@ -79,7 +78,6 @@ struct Sampler {
  */
 template <std::size_t treebits = logBuckets, typename bktsize_t = std::size_t>
 struct Classifier {
-
   const std::size_t num_splitters = (1 << treebits) - 1;
   const std::size_t splitters_size = 1 << treebits;
   Edge splitters[1 << treebits];
@@ -100,8 +98,7 @@ struct Classifier {
   }
 
   /// recursively builds splitter tree. Used by constructor.
-  void build_recursive(const Edge* lo, const Edge* hi,
-                       std::size_t pos) {
+  void build_recursive(const Edge* lo, const Edge* hi, std::size_t pos) {
     __assume(hi >= lo);
     const Edge* mid = lo + (hi - lo) / 2;
     splitters[pos] = *mid;
@@ -155,7 +152,8 @@ struct Classifier {
   }
 
   /// classify all elements by pushing them down the tree and saving bucket id
-  inline void classify(EdgeIt begin, EdgeIt end, bucket_t* __restrict__ bktout = nullptr) {
+  inline void classify(EdgeIt begin, EdgeIt end,
+                       bucket_t* __restrict__ bktout = nullptr) {
     if (bktout == nullptr) bktout = this->bktout;
     for (EdgeIt it = begin; it != end;) {
       bucket_t bucket = find_bucket(*it++);
@@ -218,9 +216,8 @@ inline std::size_t oversampling_factor(std::size_t n) {
  *
  * It is assumed that the range out_begin to out_begin + (end - begin) is valid.
  */
-float ssssort_int(DisjointSet &set, EdgeIt begin, EdgeIt end,
-                 EdgeIt out_begin, bucket_t* __restrict__ bktout, int N, int &card) {
-
+float ssssort_int(DisjointSet& set, EdgeIt begin, EdgeIt end, EdgeIt out_begin,
+                  bucket_t* __restrict__ bktout, int N, int& card) {
   assert(begin <= end);
 
   if (begin == end) {
@@ -242,8 +239,7 @@ float ssssort_int(DisjointSet &set, EdgeIt begin, EdgeIt end,
   }
 
   // classify elements
-  Classifier<logBuckets> classifier(
-      samples.get(), sample_size, bktout);
+  Classifier<logBuckets> classifier(samples.get(), sample_size, bktout);
   samples.reset(nullptr);
   classifier.template classify_unroll<6>(begin, end);
   classifier.template distribute<4>(begin, end, out_begin);
@@ -254,9 +250,10 @@ float ssssort_int(DisjointSet &set, EdgeIt begin, EdgeIt end,
   // the current bucket.
   std::size_t offset = 0;
   for (std::size_t i = 0; i < numBuckets; ++i) {
-    if (card >= N-1) break;
+    if (card >= N - 1) break;
 
-    auto out_end = filterAll(set, out_begin + offset, out_begin + classifier.bktsize[i]);
+    auto out_end =
+        filterAll(set, out_begin + offset, out_begin + classifier.bktsize[i]);
 
     size_t size = out_end - out_begin;
     if (size == 0) continue;  // empty bucket
@@ -264,12 +261,9 @@ float ssssort_int(DisjointSet &set, EdgeIt begin, EdgeIt end,
       cost += kruskal(set, out_begin + offset, out_end, N, card, true);
     } else {
       // large bucket, apply sample sort recursively
-      cost += ssssort_int(
-          set,
-          out_begin + offset,
-          out_end,  // = out_begin + offset + size
-          begin + offset, bktout + offset,
-          N, card);
+      cost += ssssort_int(set, out_begin + offset,
+                          out_end,  // = out_begin + offset + size
+                          begin + offset, bktout + offset, N, card);
     }
     // offset += classifier.bktsize[i] - offset;
     offset = classifier.bktsize[i];
@@ -283,7 +277,7 @@ float ssssort_int(DisjointSet &set, EdgeIt begin, EdgeIt end,
  *
  * Uses <= 3*(end-begin)*sizeof(value_type) bytes of additional memory
  */
-float ssssort(DisjointSet &set, EdgeIt begin, EdgeIt end, int N) {
+float ssssort(DisjointSet& set, EdgeIt begin, EdgeIt end, int N) {
   assert(begin <= end);
   const std::size_t n = static_cast<std::size_t>(end - begin);
 
@@ -300,7 +294,7 @@ float ssssort(DisjointSet &set, EdgeIt begin, EdgeIt end, int N) {
 
 }  // namespace ssssort
 
-float superKruskal(Edges& edges, int N) { 
+float superKruskal(Edges& edges, int N) {
   DisjointSet set(N);
   return ssssort::ssssort(set, edges.begin(), edges.end(), N);
 }

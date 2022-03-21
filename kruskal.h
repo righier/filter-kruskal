@@ -1,14 +1,16 @@
 #pragma once
 
+#include <algorithm>
+
+#include "graph.h"
 #include "unionfind.h"
 #include "utils.h"
-
-#include <algorithm>
 
 typedef vector<Edge>::iterator EdgeIt;
 typedef vector<Edge>::size_type ISize;
 
-static inline bool addEdgeToMst(DisjointSet &set, const Edge &e, int &card, float &cost) {
+static inline bool addEdgeToMst(DisjointSet &set, const Edge &e, int &card,
+                                float &cost) {
   if (set.checkMerge(e.a, e.b)) {
     cost += e.w;
     ++card;
@@ -19,7 +21,8 @@ static inline bool addEdgeToMst(DisjointSet &set, const Edge &e, int &card, floa
 }
 
 template <typename Iter>
-static inline float kruskal(DisjointSet &set, Iter begin, Iter end, int N, int &card, bool doSort = true) {
+static inline float kruskal(DisjointSet &set, Iter begin, Iter end, int N,
+                            int &card, bool doSort = true) {
   if (doSort) sort(begin, end);
   float cost = 0;
   for (Iter it = begin; it < end; it++) {
@@ -30,8 +33,8 @@ static inline float kruskal(DisjointSet &set, Iter begin, Iter end, int N, int &
   return cost;
 }
 
-static inline float kruskal(DisjointSet &set, vector<Edge> &edges, ISize begin, ISize end,
-              int N, int &card, bool doSort = true) {
+static inline float kruskal(DisjointSet &set, vector<Edge> &edges, ISize begin,
+                            ISize end, int N, int &card, bool doSort = true) {
   if (doSort) sort(edges.begin() + begin, edges.begin() + end);
 
   float cost = 0;
