@@ -4,3 +4,4 @@ releasedeb/*
 debug/*
 *.out
 .vscode
+.cache/*
