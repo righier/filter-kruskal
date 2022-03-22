@@ -11,11 +11,13 @@ include(CTest)
 add_library(doctest INTERFACE)
 target_include_directories(doctest INTERFACE thirdparty/doctest)
 
+add_library(nanobench INTERFACE)
+target_include_directories(nanobench INTERFACE thirdparty/nanobench)
 
 add_executable(MyExample src/main.cpp)
-target_link_libraries(MyExample PRIVATE doctest)
+target_link_libraries(MyExample PRIVATE doctest nanobench)
 
 add_executable(tests src/test.cpp)
-target_link_libraries(tests PUBLIC doctest)
-enable_testing()
+target_link_libraries(tests PRIVATE doctest nanobench)
 add_test(NAME Tests COMMAND tests)
+enable_testing()
