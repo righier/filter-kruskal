@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-#include "utils.h"
+#include "base.hpp"
 
 struct Random {
   Random(u64 seed) {

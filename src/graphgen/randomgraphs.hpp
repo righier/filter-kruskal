@@ -6,10 +6,10 @@
 #include <unordered_set>
 #include <vector>
 
-#include "kdtree.h"
-#include "random.h"
-#include "utils.h"
-
+#include "../utils/base.hpp"
+#include "../utils/graph.hpp"
+#include "../utils/random.hpp"
+#include "kdtree.hpp"
 
 static Pos randomPos(Random &rnd, float s) {
   return Pos(rnd.getFloat() * s, rnd.getFloat() * s);
@@ -92,47 +92,6 @@ static void randomGeometricGraphSeq(Random &rnd, int n, i64 m, float maxcoord,
   }
 }
 
-/*
-static void randomGeometricGraphFast(Random &rnd, int n, i64 m, float maxcoord,
-Edges &edges, bool printDotGraph = false, bool printDotTree = false) { i64 maxm
-= i64(n) * (i64(n) - 1) / 2; if (m >= maxm) return randomGeometricGraphFull(rnd,
-n, maxcoord, edges);
-  // if (m >= maxm * 0.5) return randomGeometricGraphDense(rnd, n, m, maxcoord,
-edges, printDotGraph); int k = (int)std::ceil(double(m) * 1.82 / n);
-
-  auto nodes = randomNodes(rnd, n, maxcoord);
-  kdTree tree(nodes);
-
-  if (printDotTree) { tree.printDot(); }
-
-  edges.resize(n*k);
-
-  std::vector<int> iter(n);
-  std::iota(std::begin(iter), std::end(iter), 0);
-  std::for_each(
-      std::execution::par,
-      std::begin(iter), std::end(iter), [&](int i)
-  {
-    std::vector<int> nearest;
-    tree.closestK(nodes[i], i, k, nearest);
-    for (size_t j = 0; j < nearest.size(); j++) {
-      int other = nearest[j];
-      Edge e(i, other, sqrt(dist2(nodes[i], nodes[other])));
-      if (e.a > e.b) std::swap(e.a, e.b);
-      edges[i*k + j] = e;
-    }
-  });
-
-  std::random_shuffle(edges.begin(), edges.end());
-  // std::sort(std::execution::par, edges.begin(), edges.end(),
-Edge::compareNodes);
-  // std::unique(std::execution::par, edges.begin(), edges.end(),
-Edge::compareNodes);
-
-  if (printDotGraph) { printDot(nodes, edges); }
-}
-*/
-
 static void randomGraphFull(Random &rnd, int n, float maxw, Edges &edges) {
   i64 m = (i64)n * (n - 1) / 2;
   edges.resize(m);
@@ -153,6 +112,7 @@ static void randomGraphDense(Random &rnd, int n, i64 m, float maxw,
   if (m == maxm) return randomGraphFull(rnd, n, maxw, edges);
 
   double p = (double)m / (double)maxm;
+  edges.clear();
   edges.reserve(m * 1.001);
 
   for (int a = 0; a < n; a++) {
@@ -177,6 +137,7 @@ static void randomGraph(Random &rnd, int n, i64 m, float maxw, Edges &edges) {
   double ilogp = 1.0 / std::log(1.0 - double(m) / double(maxm));
   int a = 0, b = 0;
 
+  edges.clear();
   edges.reserve(m * 1.001);  // if the number of edges is big, we almost never
                              // need to resize the vector
 

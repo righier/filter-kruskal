@@ -5,7 +5,8 @@
 #include <limits>
 #include <queue>
 
-#include "utils.h"
+#include "../utils/base.hpp"
+#include "pos.hpp"
 
 class kdTree {
  public:
@@ -62,7 +63,7 @@ class kdTree {
     return best;
   }
 
-  void closestK(const Pos &p, int id, int k, vector<int> &results) {
+  void closestK(const Pos &p, int id, int k, std::vector<int> &results) {
     std::priority_queue<QueryResult> best;
     best.emplace(dist2(this->pos, p), id);
 

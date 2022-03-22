@@ -1,13 +1,21 @@
-cmake_minimum_required(VERSION 3.0.0)
-project(filter-kruskal VERSION 0.1.0)
+cmake_minimum_required(VERSION 3.14)
+set(CMAKE_CXX_STANDARD 17)
 
-set (CMAKE_CXX_STANDARD 17)
+project(
+    CMakeNanobenchExample
+    VERSION 1.0
+    LANGUAGES CXX)
 
-add_executable(filter-kruskal main.cpp)
+include(CTest)
 
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+add_library(doctest INTERFACE)
+target_include_directories(doctest INTERFACE thirdparty/doctest)
 
-# find_package(PkgConfig REQUIRED)
-# pkg_search_module(TBB REQUIRED tbb)
-# link_libraries(PkgConfig::TBB)
+
+add_executable(MyExample src/main.cpp)
+target_link_libraries(MyExample PRIVATE doctest)
+
+add_executable(tests src/test.cpp)
+target_link_libraries(tests PUBLIC doctest)
+enable_testing()
+add_test(NAME Tests COMMAND tests)
