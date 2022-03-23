@@ -26,7 +26,7 @@ static inline EdgeIt filterAll(DisjointSet &set, EdgeIt first, EdgeIt last) {
 static inline float filterKruskal(DisjointSet &set, EdgeIt first, EdgeIt last,
                                   int N, int &card) {
   u64 M = last - first;
-  if (M == 0) return 0;
+  if (M < 1000) return kruskal(set, first, last, N, card, true);
 
   EdgeIt pivotPos = pickRandomPivot(first, last);
   float pivotVal = pivotPos->w;

@@ -30,7 +30,7 @@ static inline float kruskal(DisjointSet &set, EdgeIt first, EdgeIt last, int N,
   return cost;
 }
 
-static inline float kruskal(std::vector<Edge> &edges, int N) {
+static inline float kruskal(Edges &edges, int N) {
   DisjointSet set(N);
   int card = 0;
   return kruskal(set, edges.begin(), edges.end(), N, card, true);

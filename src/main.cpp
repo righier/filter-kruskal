@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include "graphgen/randomgraphs.hpp"
 #define DOCTEST_CONFIG_DISABLE
 #include <doctest.h>
@@ -7,6 +9,7 @@
 #include <iostream>
 
 #include "filterkruskal.hpp"
+#include "partialmst.hpp"
 #include "unionfind.hpp"
 
 int main() {
@@ -16,24 +19,37 @@ int main() {
   int M = 1000000;
 
   Random rnd(31);
-  Edges edges;
-  float cost1, cost2;
 
-  ankerl::nanobench::Bench().minEpochIterations(100).run(
-      "Graph generation", [&] { randomGraph(rnd, N, M, 1.0, edges); });
+  ankerl::nanobench::Bench bench;
 
-  std::cout << edges.size() << std::endl;
+  for (int M = 10; M < 1000000; M *= 1.5) {
+    int N = std::max((int)std::sqrt(M), 2);
+    std::cout << N << " " << M << std::endl;
 
-  ankerl::nanobench::Bench().minEpochIterations(5).run("Kruskal", [&] {
-    Edges edgesCopy = edges;
-    cost1 = kruskal(edgesCopy, N);
-  });
+    Edges edges;
+    randomGraph(rnd, N, M, 1.0, edges);
 
-  ankerl::nanobench::Bench().minEpochIterations(100).run("FilterKruskal", [&] {
-    Edges edgesCopy = edges;
-    cost2 = filterKruskal(edgesCopy, N);
-  });
+    bench.complexityN(M).minEpochIterations(100).run("FilterKruskal", [&] {
+      Edges edgesCopy = edges;
+      float cost = filterKruskal(edgesCopy, N);
+      ankerl::nanobench::doNotOptimizeAway(cost);
+    });
 
-  std::cout << "Result: " << cost1 << " " << cost2 << std::endl;
+    bench.complexityN(M).minEpochIterations(100).run("Kruskal", [&] {
+      Edges edgesCopy = edges;
+      float cost = kruskal(edgesCopy, N);
+      ankerl::nanobench::doNotOptimizeAway(cost);
+    });
+
+    bench.complexityN(M)
+        .minEpochIterations(1)
+        .maxEpochTime(std::chrono::nanoseconds(1))
+        .run("ImprovedKruskal", [&] {
+          Edges edgesCopy = edges;
+          float cost = improvedKruskal(edgesCopy, N);
+          ankerl::nanobench::doNotOptimizeAway(cost);
+        });
+  }
+
   return 0;
 }
