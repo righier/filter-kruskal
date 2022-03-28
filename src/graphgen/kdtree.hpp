@@ -65,7 +65,6 @@ class kdTree {
 
   void closestK(const Pos &p, int id, int k, std::vector<int> &results) {
     std::priority_queue<QueryResult> best;
-    best.emplace(dist2(this->pos, p), id);
 
     closestK(p, id, k, best);
 
@@ -151,10 +150,13 @@ class kdTree {
 
   void closestK(const Pos &p, int id, int k,
                 std::priority_queue<QueryResult> &best) {
-    QueryResult worst = best.top();
-    if (best.size() < (size_t)k || minDist(p) < worst.d) {
+    float worstDist = std::numeric_limits<float>::infinity();
+    if (!best.empty()) {
+      worstDist = best.top().d;
+    }
+    if (best.size() < (size_t)k || minDist(p) < worstDist) {
       float d = dist2(p, pos);
-      if (this->id != id && (best.size() < (size_t)k || d < worst.d)) {
+      if (this->id != id && (best.size() < (size_t)k || d < worstDist)) {
         if (best.size() == (size_t)k) best.pop();
         best.emplace(QueryResult(d, this->id));
       }

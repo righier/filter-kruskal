@@ -70,7 +70,7 @@ static void randomGeometricGraphSeq(Random &rnd, int n, i64 m, float maxcoord,
     tree.printDot();
   }
 
-  edges.resize(n * k);
+  edges.reserve(n * k);
   std::vector<int> nearest;
   for (int i = 0; i < n; i++) {
     nearest.clear();
@@ -78,8 +78,10 @@ static void randomGeometricGraphSeq(Random &rnd, int n, i64 m, float maxcoord,
     for (size_t j = 0; j < nearest.size(); j++) {
       int other = nearest[j];
       Edge e(i, other, sqrt(dist2(nodes[i], nodes[other])));
+      if (e.a == e.b) continue;
+
       if (e.a > e.b) std::swap(e.a, e.b);
-      edges[i * k + j] = e;
+      edges.push_back(e);
     }
   }
 
