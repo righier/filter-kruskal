@@ -6,7 +6,7 @@
 // fast solution initialization to speed up kruskal and derivates
 // TODO: fix for instances where edges with equal weight repeat
 static inline void partialMst(DisjointSet &set, EdgeIt first, EdgeIt last,
-                              int N, int &card, float &cost) {
+                              int N, Edges &mst) {
   std::vector<EdgeIt> bestEdge(N, last);
 
   auto updateBest = [&](int nodeId, EdgeIt newEdge) {
@@ -23,15 +23,15 @@ static inline void partialMst(DisjointSet &set, EdgeIt first, EdgeIt last,
 
   for (int i = 0; i < N; i++) {
     EdgeIt e = bestEdge[i];
-    addEdgeToMst(set, *e, card, cost);
+    addEdgeToMst(set, *e, mst);
   }
 }
 
-static inline float improvedKruskal(Edges &edges, int N) {
+static inline Edges improvedKruskal(Edges &edges, int N) {
   DisjointSet set(N);
-  int card = 0;
-  float cost = 0;
-  partialMst(set, edges.begin(), edges.end(), N, card, cost);
+  Edges mst;
+  partialMst(set, edges.begin(), edges.end(), N, mst);
   EdgeIt newEnd = filterAll(set, edges.begin(), edges.end());
-  return cost + kruskal(set, edges.begin(), newEnd, N, card, true);
+  kruskal(set, edges.begin(), newEnd, N, true, mst);
+  return mst;
 }
