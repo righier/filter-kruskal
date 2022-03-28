@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "kruskal.hpp"
+#include "partition.hpp"
 #include "pivot.hpp"
 #include "unionfind.hpp"
 #include "utils/graph.hpp"
@@ -23,32 +24,27 @@ static inline EdgeIt filterAll(DisjointSet &set, EdgeIt first, EdgeIt last) {
   return last;
 }
 
-static inline float filterKruskal(DisjointSet &set, EdgeIt first, EdgeIt last,
-                                  int N, int &card) {
+static inline void filterKruskal(DisjointSet &set, EdgeIt first, EdgeIt last,
+                                 int N, Edges &mst) {
   u64 M = last - first;
-  if (M < 1000) return kruskal(set, first, last, N, card, true);
+  if (M == 0) return;
+  // if (M < 1000) return kruskal(set, first, last, N, true, mst);
 
   EdgeIt pivotPos = pickRandomPivot(first, last);
-  float pivotVal = pivotPos->w;
-  std::iter_swap(pivotPos, first);
-  pivotPos = first++;
+  EdgeIt mid = partition(first, last, pivotPos->w);
 
-  EdgeIt mid = std::partition(
-      first, last, [pivotVal](const Edge &e) { return e.w < pivotVal; });
+  filterKruskal(set, first, mid, N, mst);
 
-  float cost = filterKruskal(set, first, mid, N, card);
-
-  if (card < N - 1) addEdgeToMst(set, *pivotPos, card, cost);
-  if (card < N - 1) {
+  if (mst.size() < N - 1) addEdgeToMst(set, *pivotPos, mst);
+  if (mst.size() < N - 1) {
     last = filterAll(set, mid, last);
-    cost += filterKruskal(set, mid, last, N, card);
+    filterKruskal(set, mid, last, N, mst);
   }
-
-  return cost;
 }
 
-static inline float filterKruskal(Edges &edges, int N) {
+static inline Edges filterKruskal(Edges &edges, int N) {
   DisjointSet set(N);
-  int card = 0;
-  return filterKruskal(set, edges.begin(), edges.end(), N, card);
+  Edges mst;
+  filterKruskal(set, edges.begin(), edges.end(), N, mst);
+  return mst;
 }

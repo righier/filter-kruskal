@@ -6,32 +6,30 @@
 #include "utils/graph.hpp"
 
 // adds the edge e to the MST if it is possible
-static inline bool addEdgeToMst(DisjointSet &set, const Edge &e, int &card,
-                                float &cost) {
+static inline bool addEdgeToMst(DisjointSet &set, const Edge &e, Edges &mst) {
   bool canAddEdge = set.checkMerge(e.a, e.b);
   if (canAddEdge) {
-    cost += e.w;
-    ++card;
+    mst.push_back(e);
   }
   return canAddEdge;
 }
 
-static inline float kruskal(DisjointSet &set, EdgeIt first, EdgeIt last, int N,
-                            int &card, bool doSort) {
+static inline void kruskal(DisjointSet &set, EdgeIt first, EdgeIt last, int N,
+                           bool doSort, Edges &mst) {
   if (doSort) std::sort(first, last);
 
   float cost = 0;
   for (EdgeIt it = first; it < last; it++) {
     Edge &e = *it;
-    if (addEdgeToMst(set, e, card, cost) && (card == N - 1)) {
+    if (addEdgeToMst(set, e, mst) && (mst.size() == N - 1)) {
       break;
     }
   }
-  return cost;
 }
 
-static inline float kruskal(Edges &edges, int N) {
+static inline Edges kruskal(Edges &edges, int N) {
   DisjointSet set(N);
-  int card = 0;
-  return kruskal(set, edges.begin(), edges.end(), N, card, true);
+  Edges mst;
+  kruskal(set, edges.begin(), edges.end(), N, true, mst);
+  return mst;
 }
