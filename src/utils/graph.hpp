@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ostream>
+
 #include "base.hpp"
 
 typedef std::pair<float, int> NodeEdge;
@@ -24,6 +26,11 @@ struct Edge {
     return a.a == b.a && a.b == b.b;
   }
 };
+
+static inline std::ostream &operator<<(std::ostream &out, const Edge &edge) {
+  out << edge.a << '-' << edge.b;
+  return out;
+}
 
 typedef std::vector<Edge> Edges;
 typedef std::vector<Edge>::iterator EdgeIt;
