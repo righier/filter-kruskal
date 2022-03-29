@@ -28,7 +28,7 @@ static inline void filterKruskal(DisjointSet &set, EdgeIt first, EdgeIt last,
                                  int N, Edges &mst) {
   u64 M = last - first;
   if (M == 0) return;
-  // if (M < 1000) return kruskal(set, first, last, N, true, mst);
+  if (M < 1000) return kruskal(set, first, last, N, true, mst);
 
   EdgeIt pivotPos = pickRandomPivot(first, last);
   EdgeIt mid = partition(first, last, pivotPos->w);

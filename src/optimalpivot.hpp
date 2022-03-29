@@ -35,7 +35,7 @@ struct BestPivotFinder {
   std::vector<Edge> getBestPivots() {
     customKruskal();
     // std::cout << edges << std::endl;
-    std::cout << mst << std::endl;
+    // std::cout << mst << std::endl;
     // std::cout << lastEdge << std::endl;
     // std::cout << filteredBy << std::endl;
 
@@ -114,6 +114,10 @@ struct BestPivotFinder {
     // }
   }
 
+  static u64 findCost() { return 1; }
+  static u64 compareCost() { return findCost() * 2 + 1; }
+  static u64 mergeCost() { return compareCost() + 2; }
+
   u64 calcCost(int l, int r, int pivot, int depth = 0) {
     assert(l >= 0);
     assert(r <= mst.size());
@@ -121,11 +125,13 @@ struct BestPivotFinder {
     assert(l <= pivot);
     assert(pivot < r);
 
-    float cost = count[l][r] - count[l][l];         // partition cost
-    cost += solve(l, pivot, depth + 1).cost;        // left solve
-    if (pivot < mst.size() - 1) {                   // is last pivot?
-      cost += count[l][r] - count[l][pivot] - 1;    // right filter
-      cost += solve(pivot + 1, r, depth + 1).cost;  // right solve
+    float cost = count[l][r] - count[l][l] - 1;  // partition cost
+    cost += solve(l, pivot, depth + 1).cost;     // left solve
+    cost += mergeCost();                         // merge pivot cost
+    if (pivot < mst.size() - 1) {                // is last pivot?
+      cost +=
+          compareCost() * (count[l][r] - count[l][pivot] - 1);  // right filter
+      cost += solve(pivot + 1, r, depth + 1).cost;              // right solve
     }
     return cost;
   }
