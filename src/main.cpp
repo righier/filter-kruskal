@@ -1,4 +1,5 @@
 #include <chrono>
+#include <cmath>
 #include <ratio>
 
 #define DOCTEST_CONFIG_DISABLE
@@ -31,18 +32,60 @@ int main() {
   ankerl::nanobench::Bench bench;
   bench.timeUnit(std::chrono::milliseconds(1), "ms");
 
-  for (int M = 10; M < 1000000; M *= 1.5) {
-    int N = std::max((int)std::sqrt(M), 2);
-    std::cout << N << " " << M << std::endl;
+  for (int N = 10; N < 1000000; N *= 1.5) {
+    int M = N * log(N);
 
-    Edges edges;
-    randomGraph(rnd, N, M, 1.0, edges);
+    double minPos = 1.0;
+    double maxPos = 0.0;
+    double avgPos = 0.0;
 
-    bench.complexityN(M).minEpochIterations(100).run("FilterKruskal", [&] {
-      Edges edgesCopy = edges;
-      Edges mst = filterKruskal(edgesCopy, N);
-      ankerl::nanobench::doNotOptimizeAway(mst);
-    });
+    for (int i = 0; i < 100; i++) {
+      Edges edges;
+      randomGraph(rnd, N, M, 1.0, edges);
+      int realM = edges.size();
+
+      Edges mst = kruskal(edges, N);
+
+      // std::cout << pivots << std::endl;
+      // std::cout << mst << std::endl;
+
+      // Edges pivots = findBestPivots(edges, N);
+      int lastPos;
+      for (int i = 0; i < edges.size(); i++) {
+        if (Edge::sameNodes(edges[i], mst.back())) {
+          lastPos = i;
+          break;
+        }
+      }
+
+      double relPos = lastPos / (double)M;
+      minPos = std::min(minPos, relPos);
+      maxPos = std::max(maxPos, relPos);
+      avgPos += relPos;
+
+      // bool pivotIsLast = Edge::sameNodes(pivots[0], mst.back());
+      // std::cout << N << " " << (mst.size() == N - 1) << " " << (pivotIsLast)
+      //           << " " << edges.size() << " " << pivotPos << " "
+      //           << relPos << std::endl;
+      // if (!pivotIsLast) {
+      //   std::cout << edges << std::endl;
+      //   std::cout << mst << std::endl;
+      //   std::cout << pivots << std::endl;
+      // }
+    }
+    avgPos /= 100.0;
+
+    std::cout << N << " " << minPos << " " << avgPos << " " << maxPos
+              << std::endl;
+
+    // Edges edges;
+    // randomGraph(rnd, N, M, 1.0, edges);
+
+    // bench.complexityN(M).minEpochIterations(100).run("FilterKruskal", [&] {
+    //   Edges edgesCopy = edges;
+    //   Edges mst = filterKruskal(edgesCopy, N);
+    //   ankerl::nanobench::doNotOptimizeAway(mst);
+    // });
 
     // bench.complexityN(M).minEpochIterations(100).run("Kruskal", [&] {
     //   Edges edgesCopy = edges;
@@ -55,7 +98,8 @@ int main() {
     //   ankerl::nanobench::doNotOptimizeAway(pivots);
     // });
   }
-  std::cout << bench.complexityBigO() << std::endl;
+  // std::cout << bench.complexityBigO() << std::endl;
+  std::cout << log(exp(1)) << std::endl;
 
   return 0;
 }

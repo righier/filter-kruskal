@@ -34,33 +34,9 @@ struct BestPivotFinder {
 
   std::vector<Edge> getBestPivots() {
     customKruskal();
-    // std::cout << edges << std::endl;
-    // std::cout << mst << std::endl;
-    // std::cout << lastEdge << std::endl;
-    // std::cout << filteredBy << std::endl;
-
     calcCount();
-
-    // for (int i = 0; i <= mst.size(); i++) {
-    //   for (int j = 0; j + i <= mst.size(); j++) {
-    //     auto [cost, pivot] = solve(j, j + i);
-    //     std::cout << cost << ' ';
-    //   }
-    //   std::cout << std::endl;
-    // }
-    // std::cout << std::endl;
-
-    // auto [cost, pivot] = solve(0, mst.size());
-    // std::cout << pivot << " " << cost << std::endl;
-
-    // for (int i = 0; i < mst.size(); i++) {
-    //   std::cout << calcCost(0, mst.size(), i) << " ";
-    // }
-    // std::cout << std::endl;
-
     std::vector<Edge> pivots;
     getPivotsRec(0, mst.size(), pivots);
-
     return pivots;
   }
 
@@ -116,7 +92,7 @@ struct BestPivotFinder {
 
   static u64 findCost() { return 1; }
   static u64 compareCost() { return findCost() * 2 + 1; }
-  static u64 mergeCost() { return compareCost() + 2; }
+  static u64 mergeCost() { return compareCost(); }
 
   u64 calcCost(int l, int r, int pivot, int depth = 0) {
     assert(l >= 0);
